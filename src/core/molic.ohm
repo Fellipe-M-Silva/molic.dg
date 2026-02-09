@@ -1,0 +1,95 @@
+Molic {
+  // --- Raiz ---
+  Diagram
+    = Element*
+
+  Element
+    = Scene
+    | Global
+    | Comment
+
+  // --- Estruturas Principais ---
+  Scene
+    = "scene" identifier "{" BlockContent* "}"
+
+  Global
+    = "global" identifier "{" BlockContent* "}"
+
+  // Conteúdo dentro de uma cena/global
+  BlockContent
+    = Topic
+    | Dialog
+    | FlowControl
+    | Utterance
+    | Event
+    | Condition
+
+  // --- Elementos Atômicos ---
+  
+  // Título do Tópico (Header)
+  Topic
+    = "topic:" string
+
+  // Agrupamento de Diálogo (ex: formulários)
+  Dialog
+    = "dialog" identifier "{" BlockContent* "}"
+
+  // Controles de Fluxo (Aninháveis)
+  FlowControl
+    = ("seq" | "xor" | "or") "{" BlockContent* "}"
+
+  // Falas e Interações
+  Utterance
+    = SystemUtterance
+    | UserUtterance
+    | MixedUtterance
+
+  // d: "texto" -> Destino (Opcional)
+  SystemUtterance
+    = "d:" string Transition?
+
+  // u: "texto" -> Destino (Opcional)
+  UserUtterance
+    = "u:" string Transition?
+
+  // du: campo1, campo2 (Inputs mistos)
+  MixedUtterance
+    = "du:" FieldList
+
+  // Eventos de sistema (ex: timeout)
+  Event
+    = "when:" string Transition?
+
+  // Condições (Guardas)
+  Condition
+    = "if:" string
+
+  // --- Transições ---
+  Transition
+    = Arrow identifier
+
+  Arrow
+    = "->"   -- normal
+    | "..>"  -- repair
+
+  // --- Primitivos e Utilitários ---
+  
+  FieldList
+    = NonemptyListOf<Field, ",">
+
+  Field
+    = identifier "?"?
+
+  identifier
+    = letter (alnum | "_")*
+
+  string
+    = "\"" (~"\"" any)* "\""  -- doubleQuote
+    | "'" (~"'" any)* "'"     -- singleQuote
+
+  Comment
+    = "//" (~"\n" any)* ("\n" | end)  -- singleLine
+    | "/*" (~"*/" any)* "*/"          -- multiLine
+
+  space += comment
+}
