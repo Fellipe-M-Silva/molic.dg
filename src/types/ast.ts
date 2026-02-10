@@ -16,6 +16,7 @@ export interface DiagramAST {
 export interface SceneNode extends ASTNode {
 	type: "scene";
 	variant: "normal" | "alert";
+	isMain?: boolean;
 	id: string;
 	label?: string;
 	content: ContentNode[];

@@ -29,7 +29,7 @@ Molic {
     = AlertScene | Scene | Global | Terminal | Fork | SystemProcess | External | Contact
 
   // --- Estruturas de Bloco ---
-  Scene      = "scene" identifier "{" BlockContent* "}"
+  Scene      = "main"? "scene" identifier "{" BlockContent* "}"
   AlertScene = "scene" "alert" identifier "{" BlockContent* "}"
   Global     = "global" identifier "{" BlockContent* "}"
   
@@ -118,7 +118,14 @@ semantics.addOperation("toAST", {
 	},
 
 	// Estruturas Principais
-	Scene(_scene: any, id: any, _open: any, contents: any, _close: any) {
+	Scene(
+		mainOpt: any,
+		_scene: any,
+		id: any,
+		_open: any,
+		contents: any,
+		_close: any,
+	) {
 		const allItems = contents.children.map((c: any) => c.toAST());
 
 		// SEPARAÇÃO:
@@ -142,6 +149,7 @@ semantics.addOperation("toAST", {
 		return {
 			type: "scene",
 			variant: "normal",
+			isMain: mainOpt.numChildren > 0,
 			id: id.sourceString,
 			content: content,
 			exits: exits,
@@ -257,22 +265,20 @@ semantics.addOperation("toAST", {
 	},
 
 	Fork(_tag: any, id: any, _open: any, body: any, _close: any) {
-    return {
-      type: "fork",
-      id: id.sourceString,
-      content: body.children.map((c: any) => c.toAST()),
-    } as ForkNode;
-  },
+		return {
+			type: "fork",
+			id: id.sourceString,
+			content: body.children.map((c: any) => c.toAST()),
+		} as ForkNode;
+	},
 
 	Redirect(_arrow: any, id: any) {
-    return {
-      type: "utterance",
-      text: "",
-      transition: { kind: "normal", targetId: id.sourceString }
-    };
-  },
-
-	
+		return {
+			type: "utterance",
+			text: "",
+			transition: { kind: "normal", targetId: id.sourceString },
+		};
+	},
 
 	SystemProcess(_tag: any, id: any, text: any, transition: any) {
 		return {
