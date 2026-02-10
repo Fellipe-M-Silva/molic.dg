@@ -1,29 +1,132 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+	--neutral-0: oklch(1 0 0);
+	--neutral-50: oklch(0.985 0 0);
+	--neutral-100: oklch(0.97 0 0);
+	--neutral-200: oklch(0.92 0 0);
+	--neutral-300: oklch(0.87 0 0);
+	--neutral-400: oklch(0.7 0 0);
+	--neutral-500: oklch(0.55 0 0);
+	--neutral-600: oklch(0.45 0 0);
+	--neutral-700: oklch(0.35 0 0);
+	--neutral-800: oklch(0.27 0 0);
+	--neutral-900: oklch(0.2 0 0);
+	--neutral-950: oklch(0.14 0 0);
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+	--primary-brand: oklch(0.6 0.18 280);
+	--primary-dark: oklch(0.45 0.18 280);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --header-height: 48px;
+
+	/* BACKGROUNDS */
+	--bg-base: var(--neutral-0);
+	--bg-alt: var(--neutral-100); 
+	--bg-muted: var(--neutral-300);
+	--bg-canvas: #ffffff; 
+
+	/* TEXTOS */
+	--text-base: var(--neutral-900);
+	--text-muted: var(--neutral-500);
+	--text-primary: var(--neutral-50);
+
+	/* BORDAS */
+	--border-base: var(--neutral-500);
+	--border-muted: var(--neutral-300);
+	--border-alt: var(--neutral-100);
+
+	/* INTERAÇÃO */
+	--primary: var(--neutral-900);
+	--primary-hover: var(--neutral-950);
+
+	--secondary: var(--neutral-200);
+	--secondary-hover: var(--neutral-300);
+	--secondary-text: var(--neutral-700);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+:root.dark {
+	/* BACKGROUNDS */
+	--bg-base: var(--neutral-900);
+	--bg-alt: var(--neutral-950);
+	--bg-muted: var(--neutral-700);
+	--bg-canvas: var(--neutral-900);
+
+	/* TEXTOS */
+	--text-base: var(--neutral-100);
+	--text-muted: var(--neutral-400);
+	--text-primary: var(--neutral-900);
+
+	/* BORDAS */
+	--border-base: var(--neutral-600);
+	--border-muted: var(--neutral-800);
+	--border-alt: var(--neutral-900);
+
+	/* INTERAÇÃO */
+	--primary: var(--neutral-100);
+	--primary-hover: var(--neutral-50); 
+
+	--secondary: var(--neutral-800);
+	--secondary-hover: var(--neutral-700);
+	--secondary-text: var(--neutral-300);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body,
+html,
+#root {
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	font-family: sans-serif;
+	background-color: var(--bg-canvas);
+	color: var(--text-base);
+	transition:
+		background-color 0.3s ease,
+		color 0.3s ease;
+}
+
+.app-container {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+}
+
+.header {
+	height: var(--header-height);
+	background: var(--bg-base);
+	color: var(--text-base);
+	display: flex;
+	align-items: center;
+	padding: 0 1rem;
+	border-bottom: 1px solid var(--border-base);
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.workspace {
+	display: flex;
+	flex: 1;
+	height: calc(100vh - var(--header-height));
+}
+
+.editor-pane {
+	width: 40%; 
+	border-right: 1px solid var(--border-base);
+	background: var(--bg-base);
+}
+
+.diagram-pane {
+	flex: 1;
+	background: var(--bg-canvas);
+	position: relative;
+}
+
+.react-flow__background {
+	background-color: var(--bg-alt);
 }
