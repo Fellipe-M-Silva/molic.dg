@@ -1,5 +1,3 @@
-// Tipos para nossa Árvore de Sintaxe Abstrata (AST)
-
 export type ElementType = "scene" | "global";
 export type BlockType = "seq" | "xor" | "or" | "dialog";
 
@@ -17,9 +15,11 @@ export interface DiagramAST {
 
 export interface SceneNode extends ASTNode {
 	type: "scene";
-	id: string; 
+	variant: "normal" | "alert";
+	id: string;
 	label?: string;
 	content: ContentNode[];
+	exits: ContentNode[];
 }
 
 export interface GlobalNode extends ASTNode {
@@ -30,29 +30,59 @@ export interface GlobalNode extends ASTNode {
 
 // Conteúdos possíveis dentro de uma cena
 export type ContentNode =
-	| UtteranceNode
+	| TopicNode
 	| FlowControlNode
+	| DialogNode
+	| UtteranceNode
 	| EventNode
-	| ConditionNode;
+	| ConditionNode
+	| WhyNode
+	| LetNode
+	| ProcessNode
+	| TerminalNode
+	| ForkNode
+	| ExternalNode
+	| ContactNode;
 
 export interface UtteranceNode extends ASTNode {
 	type: "utterance";
 	speaker: "user" | "system" | "mixed";
-	text: string; // O texto da fala ou lista de campos
-	isOptional?: boolean; // Para campos com '?'
+	text: string;
+	condition?: string;
 	transition?: TransitionNode;
 }
 
 export interface FlowControlNode extends ASTNode {
 	type: "flow";
-	variant: "seq" | "xor" | "or" | "dialog";
-	id?: string; // dialogs podem ter nome
+	variant: "seq" | "xor" | "or" | "and";
+	condition?: string;
 	children: ContentNode[];
+}
+
+export interface DialogNode extends ASTNode {	
+	type: "dialog";
+	children: ContentNode[];
+}
+
+export interface WhyNode extends ASTNode {
+	type: "why";
+	text: string;
+}
+
+export interface LetNode extends ASTNode {
+	type: "let";
+	variable: string;
+	value: string;
 }
 
 export interface TransitionNode {
 	targetId: string;
 	kind: "normal" | "repair"; // -> ou ..>
+}
+
+export interface TopicNode {
+	type: "topic";
+	text: string;
 }
 
 export interface EventNode extends ASTNode {
@@ -64,4 +94,55 @@ export interface EventNode extends ASTNode {
 export interface ConditionNode extends ASTNode {
 	type: "condition";
 	expression: string;
+}
+
+export interface EventNode {
+	type: "event";
+	trigger: string;
+	transition?: TransitionNode;
+}
+
+export interface ConditionNode {
+	type: "condition";
+	expression: string;
+}
+
+export interface ProcessNode {
+	type: "process";
+	action: string;
+	transition?: TransitionNode;
+}
+
+export interface ForkNode {
+  type: "fork";
+  id: string;
+  content: ContentNode[]; 
+}
+export interface TerminalNode {
+	type: "terminal";
+	kind: "start" | "end" | "break";
+	id: string;
+	targetId?: string;
+}
+
+export interface ProcessNode {
+	type: "process";
+	id: string; 
+	action: string;
+	transition?: TransitionNode;
+}
+
+export interface ExternalNode {
+  type: "external";
+  id: string;
+}
+
+export interface ContactNode {
+	type: "contact";
+	id: string; 
+	name: string;
+	flows: {
+		targetId: string;
+		label?: string;
+	}[];
 }

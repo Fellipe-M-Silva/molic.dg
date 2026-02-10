@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
-import { useTheme } from '../../hooks/UseTheme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface CodeEditorProps {
   code: string;

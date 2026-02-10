@@ -20,6 +20,7 @@
 	/* BACKGROUNDS */
 	--bg-base: var(--neutral-0);
 	--bg-alt: var(--neutral-100); 
+	--bg-muted: var(--neutral-300);
 	--bg-canvas: #ffffff; 
 
 	/* TEXTOS */
@@ -28,8 +29,8 @@
 	--text-primary: var(--neutral-50);
 
 	/* BORDAS */
-	--border-base: var(--neutral-300);
-	--border-muted: var(--neutral-200);
+	--border-base: var(--neutral-500);
+	--border-muted: var(--neutral-300);
 	--border-alt: var(--neutral-100);
 
 	/* INTERAÇÃO */
@@ -45,6 +46,7 @@
 	/* BACKGROUNDS */
 	--bg-base: var(--neutral-900);
 	--bg-alt: var(--neutral-950);
+	--bg-muted: var(--neutral-700);
 	--bg-canvas: var(--neutral-900);
 
 	/* TEXTOS */
@@ -127,17 +129,4 @@ header h1 {
 
 .react-flow__background {
 	background-color: var(--bg-alt);
-}
-
-/* Nós do diagrama (Cenas) */
-.molic-node {
-	background-color: var(--bg-base);
-	border: 1px solid var(--border-base);
-	color: var(--text-base);
-}
-
-/* Falas de Reparação (Tracejadas) */
-.molic-edge.repair path {
-	stroke: var(--border-muted);
-	stroke-dasharray: 5, 5;
 }

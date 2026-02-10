@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ReactFlowProvider, useEdgesState, useNodesState } from 'reactflow';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ReactFlowProvider, useEdgesState, useNodesState, type Connection, type Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './styles/main.css';
 import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
@@ -8,46 +8,31 @@ import { Diagram } from './components/Diagram/Diagram';
 import { transformer } from './core/transformer';
 import { parseMolic } from './core/parser';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { useLayoutPersistence } from './hooks/useLayoutPersistence';
 
-const INITIAL_CODE = `
-// Exemplo: Sistema de Login
-scene login {
-  topic: "Acesso ao Sistema"
-  
-  // Agrupamento sequencial
-  seq {
-    du: usuario, senha
-    u: "entrar" -> home
-  }
-
-  u: "esqueci a senha" -> recuperarSenha
-}
-
-scene home {
-  topic: "Dashboard"
-  u: "sair" -> login
-}
-
-scene recuperarSenha {
-  topic: "Recuperação"
-  d: "email enviado" -> login
-  u: "cancelar" ..> login // ..> cria seta tracejada (repair)
-}
-`;
-
-const initialParse = parseMolic(INITIAL_CODE);
-const initialData = initialParse.ast ? transformer(initialParse.ast) : { nodes: [], edges: [] };
-
+export const INITIAL_CODE = ``;
 
 function AppContent() {
-  const [code, setCode] = useState(INITIAL_CODE);
+  const { saveLayout, applySavedLayout } = useLayoutPersistence();
+  const isFirstRender = useRef(true);
+
+  const [code, setCode] = useState(() => {
+    return localStorage.getItem('molic-code') || INITIAL_CODE;
+  });
+
+  const initialParse = parseMolic(code);
+  const rawData = initialParse.ast ? transformer(initialParse.ast) : { nodes: [], edges: [] };
+  
+  const mergedData = applySavedLayout(rawData.nodes, rawData.edges);
+
   const [error, setError] = useState<string | null>(initialParse.error);
   
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialData.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialData.edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(mergedData.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(mergedData.edges);
 
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
+    localStorage.setItem('molic-code', newCode); 
 
     const { ast, error: parseError } = parseMolic(newCode);
 
@@ -55,15 +40,54 @@ function AppContent() {
       setError(parseError);
       return;
     }
-
     setError(null);
 
     if (ast) {
       const { nodes: newNodes, edges: newEdges } = transformer(ast);
-      setNodes(newNodes);
-      setEdges(newEdges);
+
+      const finalData = applySavedLayout(newNodes, newEdges);
+      
+      setNodes(finalData.nodes);
+      setEdges(finalData.edges);
     }
   };
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (nodes.length === 0) return;
+
+    const timeoutId = setTimeout(() => {
+      saveLayout(nodes, edges);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [nodes, edges, saveLayout]); 
+
+  const onReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      const isSameSourceNode = oldEdge.source === newConnection.source;
+      const isSameTargetNode = oldEdge.target === newConnection.target;
+      if (!isSameSourceNode || !isSameTargetNode) return;
+
+      setEdges((els) =>
+        els.map((e) => {
+          if (e.id === oldEdge.id) {
+            return {
+              ...e,
+              sourceHandle: newConnection.sourceHandle,
+              targetHandle: newConnection.targetHandle,
+            };
+          }
+          return e;
+        })
+      );
+    },
+    [setEdges]
+  );
 
   return (
     <div className="app-container">
@@ -127,7 +151,8 @@ function AppContent() {
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange} />
+            onEdgesChange={onEdgesChange}
+            onReconnect={onReconnect}/>
         </div>
       </main>
     </div>

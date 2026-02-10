@@ -33,7 +33,7 @@ Molic {
     = "dialog" identifier "{" BlockContent* "}"
 
   FlowControl
-    = ("seq" | "xor" | "or") "{" BlockContent* "}"
+  = ("seq" | "xor" | "or") identifier? "{" BlockContent* "}"
 
   Utterance
     = SystemUtterance

@@ -1,7 +1,7 @@
 import React from 'react';
 import { SunIcon, MoonIcon, DesktopIcon } from '@phosphor-icons/react';
-import { useTheme } from '../../hooks/UseTheme';
 import './ThemeToggle.css';
+import { useTheme } from '../../hooks/useTheme';
 
 export const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
