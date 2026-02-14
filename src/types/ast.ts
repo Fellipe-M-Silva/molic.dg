@@ -130,7 +130,7 @@ export interface EventNode extends ASTNode {
 
 export interface UtteranceNode extends ASTNode {
 	type: "utterance";
-	speaker: "system" | "user" | "mixed";
+	speaker: "system" | "user" | "mixed" | "anonymous";
 	text: string;
 	condition?: string;
 	when?: string;

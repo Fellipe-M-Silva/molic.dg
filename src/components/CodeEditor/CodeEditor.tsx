@@ -52,17 +52,23 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
       base: 'vs-dark',
       inherit: true,
       rules: [
-        // Keywords principais (scene, process, start...) - Roxo/Rosa
+        // Tipos de nó (scene, global, fork, process, external, contact) - Roxo/Magenta
+        { token: 'keyword.struct', foreground: 'DA70D6', fontStyle: 'bold' },
+        
+        // Cláusulas especiais (let:, why:, effect:, when:) - Azul/Ciano
+        { token: 'keyword.clause', foreground: '4EC9B0', fontStyle: 'bold' },
+        
+        // Keywords estruturais (start, end, break, main) - Roxo mais suave
         { token: 'keyword', foreground: 'C586C0', fontStyle: 'bold' },
         
-        // Fluxos (xor, seq, if...) - Laranja/Salmão
+        // Fluxos de controle (xor, seq, if, and, or) - Laranja/Salmão
         { token: 'keyword.flow', foreground: 'CE9178', fontStyle: 'italic' },
-        
-        // Atributos (topic, role, let...) - Azul Claro
-        { token: 'keyword.attribute', foreground: '9CDCFE' },
         
         // Speakers (u, d, du) - Amarelo (Fácil identificação)
         { token: 'keyword.speaker', foreground: 'DCDCAA', fontStyle: 'bold' },
+        
+        // Transições (-> e ..>) - Verde água
+        { token: 'operator.arrow', foreground: '4EC9B0', fontStyle: 'bold' },
         
         // Strings - Verde
         { token: 'string', foreground: '6A9955' },
@@ -70,15 +76,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
         // Comentários - Cinza/Verde escuro
         { token: 'comment', foreground: '608B4E', fontStyle: 'italic' },
         
-        // Operadores (->) - Cinza Claro
+        // Operadores (= :) - Cinza Claro
         { token: 'operator', foreground: 'D4D4D4' },
         
-        // Identificadores inválidos ou desconhecidos
+        // Identificadores (nomes de nós, variáveis)
         { token: 'identifier', foreground: 'D4D4D4' },
       ],
       colors: {
         'editor.background': '#0a0a0a',
-        'editor.lineHighlightBackground': '#333333',
+        'editor.lineHighlightBackground': '#1a1a1a',
         'editor.selectionBackground': '#264F78',
       }
     });
@@ -88,17 +94,40 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
       base: 'vs',
       inherit: true,
       rules: [
+        // Tipos de nó - Magenta
+        { token: 'keyword.struct', foreground: 'A4009B', fontStyle: 'bold' },
+        
+        // Cláusulas especiais - Verde escuro
+        { token: 'keyword.clause', foreground: '008000', fontStyle: 'bold' },
+        
+        // Keywords estruturais - Roxo
         { token: 'keyword', foreground: 'AF00DB', fontStyle: 'bold' },
+        
+        // Fluxos - Azul
         { token: 'keyword.flow', foreground: '0000FF', fontStyle: 'italic' },
-        { token: 'keyword.attribute', foreground: '0070C1' },
-        { token: 'keyword.speaker', foreground: '795E26', fontStyle: 'bold' },
+        
+        // Speakers - Marrom
+        { token: 'keyword.speaker', foreground: 'BF7F3C', fontStyle: 'bold' },
+        
+        // Transições - Verde escuro
+        { token: 'operator.arrow', foreground: '008000', fontStyle: 'bold' },
+        
+        // Strings - Vermelho escuro
         { token: 'string', foreground: 'A31515' },
+        
+        // Comentários - Verde
         { token: 'comment', foreground: '008000', fontStyle: 'italic' },
+        
+        // Operadores - Preto
         { token: 'operator', foreground: '000000' },
+        
+        // Identificadores
+        { token: 'identifier', foreground: '000000' },
       ],
       colors: {
         'editor.background': '#ffffff', 
-        'editor.lineHighlightBackground': '#e0e0e0',
+        'editor.lineHighlightBackground': '#f0f0f0',
+        'editor.selectionBackground': '#ADD6FF',
       }
     });
     
@@ -108,10 +137,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
     editor.focus();
   };
 
-  // Atualiza o tema se mudar fora do editor (ex: botão de tema da UI)
+  // Atualiza o tema se mudar fora do editor (ex: botão de tema da UI ou localStorage.clear())
   useEffect(() => {
     if (monacoRef.current) {
-      monacoRef.current.editor.setTheme(resolvedTheme === 'dark' ? 'molic-dark' : 'molic-light');
+      const newTheme = resolvedTheme === 'dark' ? 'molic-dark' : 'molic-light';
+      monacoRef.current.editor.setTheme(newTheme);
     }
   }, [resolvedTheme]);
 

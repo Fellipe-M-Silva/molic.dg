@@ -32,23 +32,23 @@ Molic {
 
   Utterance = SystemUtterance | UserUtterance | MixedUtterance | AnonymousUtterance
 
-	SystemUtterance = "d:" string Trigger? EffectClause?
-	UserUtterance = "u:" string Trigger? EffectClause?
-	MixedUtterance = "du:" string Trigger? EffectClause?
-	AnonymousUtterance = "anon:" string Trigger? EffectClause?
+	SystemUtterance = "d:" string Trigger?
+	UserUtterance = "u:" string Trigger?
+	MixedUtterance = "du:" string Trigger?
+	AnonymousUtterance = "anon:" Trigger?
 
   Trigger = Condition | When
-  Condition = "if" string
-  When = "when" string
+  Condition = "if:" string
+  When = "when:" string
   
 	LetClause = "let:" string
-	EffectClause = "effect" string
+	EffectClause = "effect:" string
 	WhyClause = "why:" string
 
 	InlineMeta = LetClause | EffectClause | WhyClause
 
 	Transition = Arrow identifier
-  Arrow = "->" | "..>"
+  Arrow = "=>" | "->" | "..>"
 
   string = dqString | sqString
   dqString = "\\"" (~"\\"" any)* "\\""
@@ -212,13 +212,9 @@ semantics.addOperation("toAST", {
 		};
 	},
 
-	SystemUtterance(_d: any, text: any, trigger: any, effectClause: any) {
+	SystemUtterance(_d: any, text: any, trigger: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const eff =
-			effectClause.numChildren > 0
-				? effectClause.children[0].toAST()
-				: undefined;
 
 		return {
 			type: "utterance",
@@ -226,17 +222,12 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			effect: eff?.value,
 		};
 	},
 
-	UserUtterance(_u: any, text: any, trigger: any, effectClause: any) {
+	UserUtterance(_u: any, text: any, trigger: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const eff =
-			effectClause.numChildren > 0
-				? effectClause.children[0].toAST()
-				: undefined;
 
 		return {
 			type: "utterance",
@@ -244,17 +235,12 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			effect: eff?.value,
 		};
 	},
 
-	MixedUtterance(_du: any, text: any, trigger: any, effectClause: any) {
+	MixedUtterance(_du: any, text: any, trigger: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const eff =
-			effectClause.numChildren > 0
-				? effectClause.children[0].toAST()
-				: undefined;
 
 		return {
 			type: "utterance",
@@ -262,25 +248,19 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			effect: eff?.value,
 		};
 	},
 
-	AnonymousUtterance(_anon: any, text: any, trigger: any, effectClause: any) {
+	AnonymousUtterance(_anon: any, trigger: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const eff =
-			effectClause.numChildren > 0
-				? effectClause.children[0].toAST()
-				: undefined;
 
 		return {
 			type: "utterance",
-			speaker: "system",
-			text: text.toAST(),
+			speaker: "anonymous",
+			text: "",
 			condition: trig?.condition,
 			when: trig?.when,
-			effect: eff?.value,
 		};
 	},
 
@@ -338,7 +318,9 @@ semantics.addOperation("toAST", {
 	},
 
 	Transition(arrow: any, id: any) {
-		const kind = arrow.sourceString === "..>" ? "repair" : "normal";
+		let kind = "normal";
+		if (arrow.sourceString === "..>") kind = "repair";
+		else if (arrow.sourceString === "=>") kind = "simultaneous";
 		return {
 			kind: kind,
 			targetId: id.sourceString,

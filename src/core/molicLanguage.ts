@@ -30,66 +30,67 @@ export const molicLanguage: languages.IMonarchLanguage = {
 	defaultToken: "",
 	tokenPostfix: ".molic",
 
-	keywords: [
-		"scene",
-		"global",
-		"fork",
-		"process",
-		"external",
-		"contact",
-		"start",
-		"end",
-		"break",
-		"main",
-		"alert",
-		"let",
-	],
+	// Tipos de nó
+	nodeTypes: ["scene", "global", "fork", "process", "external", "contact"],
 
+	// Keywords estruturais
+	keywords: ["start", "end", "break", "main"],
+
+	// Fluxo de controle
 	flowKeywords: ["seq", "xor", "or", "and", "dialog", "if"],
 
-	attributes: ["topic", "role", "why", "when"],
+	// Cláusulas (usam ":")
+	clauses: ["let", "when", "why", "effect", "if"],
 
-	speakers: ["u", "d", "du"],
-
-	operators: ["=", "->", "..>", ":"],
+	speakers: ["u", "d", "du", "anon"],
 
 	// Símbolos comuns
 	symbols: /[=><!~?:&|+\-*\/\^%]+/,
 
 	tokenizer: {
 		root: [
-			// Identificadores e palavras-chave
+			// Cláusulas especiais com ":" (let:, why:, effect:, when:, if:)
+			[/\b(let|why|effect|when|if):\s/, "keyword.clause"],
+
+			// Tipos de nó (scene, global, fork, process, external, contact)
 			[
-				/[a-z_$][\w$]*/,
-				{
-					cases: {
-						"@keywords": "keyword",
-						"@flowKeywords": "keyword.flow",
-						"@attributes": "keyword.attribute",
-						"@speakers": "keyword.speaker",
-						"@default": "identifier",
-					},
-				},
+				/\b(scene|global|fork|process|external|contact)\b/i,
+				"keyword.struct",
 			],
+
+			// Keywords estruturais
+			[/\b(start|end|break|main)\b/i, "keyword"],
+
+			// Fluxo de controle (seq, xor, or, and, dialog) - NÃO include 'if' aqui
+			[/\b(seq|xor|or|and|dialog)\b/i, "keyword.flow"],
+
+			// Speakers (u:, d:, du:, anon:)
+			[/\b(u|d|du|anon):/, "keyword.speaker"],
+
+			// Transições (=>, -> e ..>)
+			[/(=>|->|\.\.>)/, "operator.arrow"],
+
+			// Identificadores
+			[/[a-z_][a-z0-9_]*/i, "identifier"],
+
+			// Números
+			[/\b\d+(\.\d+)?\b/, "number"],
 
 			// Espaços em branco
 			{ include: "@whitespace" },
 
-			// Delimitadores e operadores
+			// Delimitadores
 			[/[{}()\[\]]/, "@brackets"],
-			[
-				/@symbols/,
-				{
-					cases: {
-						"@operators": "operator",
-						"@default": "",
-					},
-				},
-			],
 
-			// Strings
-			[/"([^"\\]|\\.)*$/, "string.invalid"], // string não terminada
+			// Operadores
+			[/[=:]/, "operator"],
+
+			// Strings com aspas duplas
+			[/"([^"\\]|\\.)*$/, "string.invalid"],
 			[/"/, { token: "string.quote", bracket: "@open", next: "@string" }],
+
+			// Strings com aspas simples
+			[/'([^'\\]|\\.)*$/, "string.invalid"],
 			[
 				/'/,
 				{
@@ -98,12 +99,18 @@ export const molicLanguage: languages.IMonarchLanguage = {
 					next: "@stringSingle",
 				},
 			],
+
+			// Comentários de linha
+			[/\/\/.*$/, "comment"],
+
+			// Comentários de bloco
+			[/\/\*/, "comment", "@comment"],
 		],
 
 		comment: [
 			[/[^\/*]+/, "comment"],
-			[/\/\*/, "comment", "@push"], // nested comments
-			["\\*/", "comment", "@pop"],
+			[/\/\*/, "comment", "@push"],
+			[/\*\//, "comment", "@pop"],
 			[/[\/*]/, "comment"],
 		],
 

@@ -42,7 +42,6 @@ const ForkHandleSet = () => {
 const renderContent = (items: ContentNode[]) => {
   return items.map((item, index) => {
     if (item.type === 'topic') return null; // Topic é apenas header, não renderizar aqui
-    if (item.type === 'subtopic') return <div key={index} className='molic-subtopic'>{(item as any).text}</div>;
     if (item.type === 'let') return <div key={index} className="molic-let"><strong>let:</strong> {item.value}</div>;
     if (item.type === 'effect') return <div key={index} className="molic-effect"><strong>effect:</strong> {(item as any).value}</div>;
     if (item.type === 'why') return <div key={index} className="molic-why"><strong>why:</strong> {(item as any).value}</div>;
@@ -51,6 +50,7 @@ const renderContent = (items: ContentNode[]) => {
     if (item.type === 'utterance') {
       const utt = item as any;
       if (utt.transition) return null; // Ignore utterances com transição (vão gerar arestas)
+      if (utt.speaker === 'anonymous') return null; // Ignore utterances anônimas (sem conteúdo)
       
       const prefix = utt.speaker === 'user' ? 'u' : utt.speaker === 'mixed' ? 'd+u' : 'd';
       const condText = utt.condition ? ` [if: ${utt.condition}]` : '';

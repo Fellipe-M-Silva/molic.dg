@@ -32,6 +32,7 @@ const getBasePrefix = (speaker: string) => {
   if (speaker === "user") return "u: ";
   if (speaker === "system") return "d: ";
   if (speaker === "mixed") return "d+u: ";
+  if (speaker === "anonymous") return ""; // Anonymous utterances have no display text
   return "";
 };
 
@@ -139,8 +140,20 @@ export const transformer = (ast: DiagramAST, savedHandles?: Map<string, { source
     const targetType = nodeTypeMap[targetId];
     
     let kind = item.transition.kind;
+    
+    // Validar fala simultânea: apenas entre scene e process
+    if (kind === 'simultaneous') {
+      const isValidSimultaneous = 
+        (sourceType === 'scene' && targetType === 'process') ||
+        (sourceType === 'process' && targetType === 'scene');
+      if (!isValidSimultaneous) {
+        console.warn(`Simultaneous transition (=>) is only valid between scene and process, got: ${sourceType} => ${targetType}`);
+        return;
+      }
+    }
+    
     const isInteractionMediated = sourceType === 'contact' || targetType === 'contact' || targetType === 'external';
-    if (isInteractionMediated) kind = 'mediated';
+    if (isInteractionMediated && kind !== 'simultaneous') kind = 'mediated';
 
     const isPreferred = item.transition.isPreferred;
 
