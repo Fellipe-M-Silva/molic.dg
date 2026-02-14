@@ -91,7 +91,15 @@ const renderContent = (items: ContentNode[]) => {
 export const MolicNode = memo(({ data, selected }: NodeProps) => {
   const visibleContent = useMemo(() => {
     if (!data.rawContent) return [];
-    return data.rawContent.filter((item: ContentNode) => item.type !== 'topic');
+    return data.rawContent.filter((item: ContentNode) => {
+      // Não conta como body: topic, let, effect, why, utterances com transição
+      if (item.type === 'topic') return false;
+      if (item.type === 'let' || item.type === 'effect' || item.type === 'why') return false;
+      if (item.type === 'utterance' && (item as any).transition) return false;
+      if (item.type === 'event' && (item as any).transition) return false;
+      // Conta como body: subtopic, flow, utterances sem transição, dialog
+      return true;
+    });
   }, [data.rawContent]);
 
   const type = data.nodeType || 'scene';
