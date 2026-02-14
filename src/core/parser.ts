@@ -347,13 +347,42 @@ semantics.addOperation("toAST", {
 	},
 });
 
+export interface ParsingError {
+	message: string;
+	line: number;
+	column: number;
+	position: number;
+}
+
 export const parseMolic = (input: string) => {
 	try {
 		const match = grammar.match(input);
-		if (match.failed()) return { ast: null, error: match.message };
+		if (match.failed()) {
+			// Quando há falha de parsing, colocamos na última linha onde o match chegou
+			const lines = input.split("\n");
+			// O índice de falha geralmente está no final
+			const line = Math.max(1, lines.length);
+			const lastLine = lines[lines.length - 1] || "";
+			const column = lastLine.length + 1;
+
+			const error: ParsingError = {
+				message: match.message,
+				line,
+				column,
+				position: input.length,
+			};
+			return { ast: null, error };
+		}
 		const ast = semantics(match).toAST() as DiagramAST;
 		return { ast, error: null };
 	} catch (e: any) {
-		return { ast: null, error: e.message };
+		// Erro genérico - posição desconhecida
+		const error: ParsingError = {
+			message: e.message,
+			line: 1,
+			column: 1,
+			position: 0,
+		};
+		return { ast: null, error };
 	}
 };

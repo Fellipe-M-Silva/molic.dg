@@ -4,8 +4,9 @@ import 'reactflow/dist/style.css';
 import './styles/main.css';
 import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 import { CodeEditor } from './components/CodeEditor/CodeEditor';
+import { ProblemsPanel } from './components/ProblemsPanel/ProblemsPanel';
 import { Diagram } from './components/Diagram/Diagram';
-import { parseMolic } from './core/parser';
+import { useValidation } from './hooks/useValidation';
 import { ThemeProvider } from './providers/ThemeProvider';
 
 export const INITIAL_CODE = ``;
@@ -15,14 +16,12 @@ function AppContent() {
     return localStorage.getItem('molic-code') || INITIAL_CODE;
   });
 
-  const [error, setError] = useState<string | null>(null);
+  // Validação com debounce
+  const error = useValidation(code, 800);
 
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     localStorage.setItem('molic-code', newCode);
-
-    const { error: parseError } = parseMolic(newCode);
-    setError(parseError);
   };
 
   return (
@@ -64,22 +63,13 @@ function AppContent() {
           display: 'flex',
           flexDirection: 'column'
         }}>
-          <CodeEditor code={code} onChange={handleCodeChange} />
+          <CodeEditor 
+            code={code} 
+            onChange={handleCodeChange}
+            errors={error ? [error] : []}
+          />
 
-          {error && (
-            <div style={{
-              padding: '10px',
-              background: 'var(--bg-alt)',
-              borderTop: '1px solid var(--border-muted)',
-              color: '#ff4d4f',
-              fontSize: '0.85rem',
-              maxHeight: '100px',
-              overflowY: 'auto',
-              fontFamily: 'monospace'
-            }}>
-              {error}
-            </div>
-          )}
+          {error && <ProblemsPanel errors={[error]} />}
         </aside>
 
         <div className="diagram-pane">

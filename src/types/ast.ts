@@ -17,6 +17,7 @@ export type ElementNode =
 
 export type ContentNode =
 	| TopicNode
+	| SubtopicNode
 	| LetNode
 	| EffectNode
 	| WhyNode
@@ -89,6 +90,11 @@ export interface ContactNode extends ASTNode {
 
 export interface TopicNode extends ASTNode {
 	type: "topic";
+	text: string;
+}
+
+export interface SubtopicNode extends ASTNode {
+	type: "subtopic";
 	text: string;
 }
 

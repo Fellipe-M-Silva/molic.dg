@@ -1,10 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
   ConnectionMode,
-  useNodesState,
-  useEdgesState,
   type OnConnectStart,
   type OnConnectEnd,
   type Edge,
@@ -15,12 +14,15 @@ import 'reactflow/dist/style.css';
 import { MolicNode } from './MolicNode';
 import { SimultaneousEdge } from './SimultaneousEdge';
 import { MolicEdge } from './MolicEdge';
+import { DiagramToolbar } from './DiagramToolbar';
 import { transformer } from '../../core/transformer';
 import { parseMolic } from '../../core/parser';
 import { useLayoutPersistence } from '../../hooks/useLayoutPersistence';
+import { useUndoRedo } from '../../hooks/useUndoRedo';
 
 import './MolicEdge.css';
 import './MolicNode.css'; 
+import './DiagramToolbar.css';
 import './Diagram.css';
 
 interface DiagramProps {
@@ -33,8 +35,19 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
     () => ({ simultaneous: SimultaneousEdge, molic: MolicEdge }),
     [],
   );
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    onNodesChange,
+    onEdgesChange,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useUndoRedo();
+  
   const [isConnecting, setIsConnecting] = useState(false);
   const { saveLayout, applySavedLayout } = useLayoutPersistence();
   const edgeReconnectSuccessful = useRef(true);
@@ -155,6 +168,22 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
     }
   }, [code, setNodes, setEdges, applySavedLayout]);
 
+  // Keyboard shortcuts para Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
+
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <ReactFlow
@@ -170,22 +199,28 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
         reconnectRadius={20}
         connectionMode={ConnectionMode.Loose}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 1 }}
         minZoom={0.1}
         snapToGrid={true}
         snapGrid={[16, 16]}
         className={isConnecting ? 'app-connecting' : ''}
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
-        style={{ backgroundColor: 'var(--bg-canvas, #f5f5f5)' }}
+        style={{ backgroundColor: 'var(--bg-canvas)' }}
       >
         <Background gap={16} size={1} />
         <Controls />
+        <DiagramToolbar
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+        />
         <svg style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }}>
           <defs>
             <marker id="double-arrowhead" viewBox="0 0 20 10" refX="18" refY="5" markerWidth="10" markerHeight="10" orient="auto">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-base, #000)" />
-              <path d="M 8 0 L 18 5 L 8 10 z" fill="var(--text-base, #000)" />
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-base)" />
+              <path d="M 8 0 L 18 5 L 8 10 z" fill="var(--text-base)" />
             </marker>
           </defs>
         </svg>

@@ -40,7 +40,7 @@ export const molicLanguage: languages.IMonarchLanguage = {
 	flowKeywords: ["seq", "xor", "or", "and", "dialog", "if"],
 
 	// Cláusulas (usam ":")
-	clauses: ["let", "when", "why", "effect", "if"],
+	clauses: ["topic", "subtopic", "let", "when", "why", "effect", "if"],
 
 	speakers: ["u", "d", "du", "anon"],
 
@@ -49,8 +49,8 @@ export const molicLanguage: languages.IMonarchLanguage = {
 
 	tokenizer: {
 		root: [
-			// Cláusulas especiais com ":" (let:, why:, effect:, when:, if:)
-			[/\b(let|why|effect|when|if):\s/, "keyword.clause"],
+			// Cláusulas especiais com ":" (topic:, subtopic:, let:, why:, effect:, when:, if:)
+			[/\b(topic|subtopic|let|why|effect|when|if):/, "keyword.clause"],
 
 			// Tipos de nó (scene, global, fork, process, external, contact)
 			[

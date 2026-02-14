@@ -2,7 +2,7 @@
 import { memo, useMemo } from 'react';
 import { Position, type NodeProps } from 'reactflow';
 import { BiDirectionalHandle } from './BiDirectionalHandle';
-import { type ContentNode, type FlowControlNode } from '../../types/ast';
+import { type ContentNode, type FlowControlNode, type SubtopicNode } from '../../types/ast';
 import './MolicNode.css'; 
 
 const POSITIONS = {
@@ -42,6 +42,7 @@ const ForkHandleSet = () => {
 const renderContent = (items: ContentNode[]) => {
   return items.map((item, index) => {
     if (item.type === 'topic') return null; // Topic é apenas header, não renderizar aqui
+    if (item.type === 'subtopic') return <div key={index} className="molic-subtopic">{(item as SubtopicNode).text}</div>;
     if (item.type === 'let') return <div key={index} className="molic-let"><strong>let:</strong> {item.value}</div>;
     if (item.type === 'effect') return <div key={index} className="molic-effect"><strong>effect:</strong> {(item as any).value}</div>;
     if (item.type === 'why') return <div key={index} className="molic-why"><strong>why:</strong> {(item as any).value}</div>;
@@ -141,9 +142,6 @@ export const MolicNode = memo(({ data, selected }: NodeProps) => {
         {type === 'forkNode' && <div className="fork-bar" />}
         {type === 'contactNode' && <><div className="contact-icon">user</div><span className="contact-label">{data.label}</span></>}
         
-        {['startNode'].includes(type) && (
-           <div style={{ textAlign: 'center', padding: '4px', fontWeight: 'bold' }}>{data.label}</div>
-        )}
         {type === 'forkNode' ? <ForkHandleSet /> : <HandleSet isScene={false} />}
       </div>
     );

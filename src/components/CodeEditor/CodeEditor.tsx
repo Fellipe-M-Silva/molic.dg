@@ -3,16 +3,19 @@ import React, { useRef, useEffect } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useTheme } from '../../hooks/useTheme';
 import { molicConfiguration, molicLanguage } from '../../core/molicLanguage';
+import type { ParsingError } from '../../core/parser';
 
 interface CodeEditorProps {
   code: string;
   onChange: (value: string) => void;
+  errors?: ParsingError[];
 }
 
-export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
+export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors = [] }) => {
   const { resolvedTheme } = useTheme();
   const isLanguageRegistered = useRef(false);
   const monacoRef = useRef<any>(null);
+  const editorRef = useRef<any>(null);
 
   const editorOptions = {
     minimap: { enabled: false },
@@ -34,6 +37,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
   };
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
     monacoRef.current = monaco;
 
     // 1. Registrar a linguagem apenas uma vez
@@ -144,6 +148,24 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
       monacoRef.current.editor.setTheme(newTheme);
     }
   }, [resolvedTheme]);
+
+  // Marca os erros no editor usando Monaco markers
+  useEffect(() => {
+    if (monacoRef.current && editorRef.current) {
+      const model = editorRef.current.getModel();
+      if (model) {
+        const markers = errors.map((error) => ({
+          severity: monacoRef.current.MarkerSeverity.Error,
+          startLineNumber: error.line,
+          startColumn: error.column,
+          endLineNumber: error.line,
+          endColumn: error.column + 1,
+          message: error.message,
+        }));
+        monacoRef.current.editor.setModelMarkers(model, 'molic', markers);
+      }
+    }
+  }, [errors]);
 
   return (
     <div style={{ height: '100%', width: '100%' }} onKeyDown={(e) => e.stopPropagation()}>

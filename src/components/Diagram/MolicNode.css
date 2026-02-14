@@ -18,8 +18,8 @@
 
 /* --- Global --- */
 .molic-node.global {
-	background-color: #f0f2f5; /* Cinza claro */
-	border: 2px dashed #bdc3c7;
+	background-color: var(--bg-muted);
+	border: 2px solid var(--border-base);
 	border-radius: 12px;
 	display: flex;
 	align-items: center;
@@ -28,17 +28,17 @@
 }
 .global-label {
 	font-weight: bold;
-	color: #7f8c8d;
+	color: var(--text-base);
 	font-style: italic;
 }
 
 /* --- Scene Header/Body --- */
 .molic-node-header {
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--border-muted, #eee);
+	border-bottom: 1px solid var(--border-muted);
 	font-weight: 600;
 	text-align: center;
-	background-color: #f8f9fa;
+	background-color: var(--bg-alt);
 	border-radius: 8px 8px 0 0;
 }
 
@@ -56,22 +56,22 @@
 }
 
 .molic-subtopic {
-	padding: 6px 8px;
 	font-weight: 600;
-	color: #555;
-	background: #f0f0f0;
-	border-left: 3px solid #666;
+	color: var(--text-base);
 	margin: 6px 0 4px 0;
 	font-size: 11px;
 }
 
 /* --- Fluxos --- */
 .molic-flow {
-	border: 1px solid #ddd;
+	border: 1px solid var(--border-base);
 	border-radius: 4px;
 	padding: 6px;
-	margin-bottom: 8px;
 	position: relative;
+
+	&not(last-child) {
+		margin-bottom: 8px;
+	}
 }
 
 /* AND Default (Invisível) */
@@ -97,10 +97,21 @@
 
 .molic-flow-label {
 	font-size: 10px;
-	color: #666;
+	color: var(--text-muted);
+	padding-bottom: 4px;
 	margin-bottom: 4px;
 	display: flex;
 	justify-content: space-between;
+	border-bottom: 1px solid var(--border-muted);
+}
+
+.molic-flow-type {
+	font-weight: bold;
+	font-family: monospace;
+	color: var(--text-base);
+	background: var(--bg-alt);
+	padding: 2px 4px;
+	border-radius: 4px;
 }
 
 /* --- Terminais (Start/End) --- */
@@ -130,7 +141,7 @@
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
-	border: 2px solid #000;
+	border: 2px solid var(--text-base);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -138,7 +149,7 @@
 .terminal-double-circle .inner {
 	width: 20px;
 	height: 20px;
-	background-color: #000;
+	background-color: var(--text-base);
 	border-radius: 50%;
 }
 
@@ -221,17 +232,15 @@
 
 /* --- Utterances --- */
 .molic-utterance {
-	padding: 6px 8px;
+	padding: 0 16px;
 	margin: 4px 0;
-	background: #f9f9f9;
-	border-left: 3px solid #0066cc;
 	font-size: 11px;
 	line-height: 1.4;
-	color: #333;
+	color: var(--text-muted);
 }
 
 .molic-utterance strong {
-	color: #0066cc;
+	color: var(--text-base);
 	font-weight: 600;
 }
 
@@ -245,7 +254,7 @@
 	padding: 4px 8px;
 	margin: 4px 0;
 	background: #f0f7ff;
-	border-left: 3px solid #3b82f6;
+	border-left: 3px solid var(--text-base);
 	font-size: 11px;
 	line-height: 1.4;
 	color: #333;
@@ -255,7 +264,7 @@
 	padding: 4px 8px;
 	margin: 4px 0;
 	background: #fff7e6;
-	border-left: 3px solid #d48806;
+	border-left: 3px solid var(--text-base);
 	font-size: 11px;
 	line-height: 1.4;
 	color: #333;
