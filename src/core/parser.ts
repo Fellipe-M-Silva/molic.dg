@@ -1,53 +1,53 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as ohm from "ohm-js";
-import type {
-	DiagramAST,
-	UtteranceNode,
-	FlowControlNode,
-	StartNode,
-	ContentNode,
-} from "../types/ast";
+import type { DiagramAST } from "../types/ast";
 
 export const grammarSource = `
 Molic {
   Diagram = Element*
 
-  Element = Scene | Global
+  Element = Scene | Global | Start | Terminal | External
 
-  Scene = "scene" identifier "{" BlockContent* "}"
-  Global = "global" identifier "{" BlockContent* "}"
+  Scene = "main"? "scene" identifier "{" SceneContent* "}"
+  Global = "global" identifier "{" SceneContent* "}"
+  Start = "start" identifier "{" SceneContent* "}"
+  Terminal = ("end" | "break") identifier
+  External = "external" identifier
 
-  BlockContent = Topic | Dialog | FlowControl | Utterance | Event | Condition
+  SceneContent = Topic | SubTopic | FlowControl | UtteranceWithTransition
 
   Topic = "topic:" string
-  Dialog = "dialog" identifier "{" BlockContent* "}"
+  SubTopic = "subtopic:" string
   
-  FlowControl = FlowType "{" BlockContent* "}"
-  FlowType = "seq" | "xor" | "or"
+  FlowControl = FlowType Condition? "{" FlowContent* "}"
+  FlowType = "and" | "seq" | "or" | "xor"
+  
+  FlowContent = SubTopic | UtteranceWithTransition
 
-  Utterance = SystemUtterance | UserUtterance | MixedUtterance
-  SystemUtterance = "d:" string Transition?
-  UserUtterance = "u:" string Transition?
-  MixedUtterance = "du:" FieldList
+  UtteranceWithTransition = Utterance Transition?
 
-  Event = "when:" string Transition?
-  Condition = "if:" string
+  Utterance = SystemUtterance | UserUtterance | MixedUtterance | AnonymousUtterance
+
+  SystemUtterance = "d:" string Trigger? LetClause? EffectClause?
+  UserUtterance = "u:" string Trigger? LetClause? EffectClause?
+  MixedUtterance = "du:" string Trigger? LetClause? EffectClause?
+  AnonymousUtterance = dqString Trigger? LetClause? EffectClause?
+
+  Trigger = Condition | When
+  Condition = "if" string
+  When = "when" string
+  
+  LetClause = "let" string
+  EffectClause = "effect" string
 
   Transition = Arrow identifier
   Arrow = "->" | "..>"
 
-  FieldList = NonemptyListOf<Field, ",">
-  Field = identifier 
+  string = dqString | sqString
+  dqString = "\\"" (~"\\"" any)* "\\""
+  sqString = "'" (~"'" any)* "'"
 
   identifier = letter (alnum | "_")*
-  
-  string = dqString | sqString
-  dqString = "\\"" strChar* "\\""
-  sqString = "'" sqChar* "'"
-  
-  strChar = ~"\\"" any
-  sqChar = ~"'" any
 }
 `;
 
@@ -63,25 +63,72 @@ semantics.addOperation("toAST", {
 		};
 	},
 
-	Scene(_scene: any, id: any, _open: any, contents: any, _close: any) {
+	Scene(
+		mainOpt: any,
+		_scene: any,
+		id: any,
+		_open: any,
+		contents: any,
+		_close: any,
+	) {
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
+
+		const topicNode = contentNodes.find((c: any) => c.type === "topic");
+		const label = topicNode?.text;
+		const exits = contentNodes.filter(
+			(c: any) => c.type === "utterance" && c.transition,
+		);
+
 		return {
 			type: "scene",
 			id: id.sourceString,
+			label: label,
 			content: contentNodes,
+			exits: exits,
+			isMain: mainOpt.numChildren > 0,
+			variant: "normal",
 		};
 	},
 
-	Global(_global: any, id: any, _open: any, contents: any, _close: any) {
-		const contentNodes = contents.children
+	Global(_global: any, id: any, _open: any, connections: any, _close: any) {
+		const connNodes = connections.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
 		return {
 			type: "global",
 			id: id.sourceString,
-			content: contentNodes,
+			content: connNodes,
+			exits: connNodes,
+		};
+	},
+
+	Start(_start: any, id: any, _open: any, connections: any, _close: any) {
+		const connNodes = connections.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		return {
+			type: "terminal",
+			kind: "start",
+			id: id.sourceString,
+			content: connNodes,
+		};
+	},
+
+	Terminal(keyword: any, id: any) {
+		const kind = keyword.sourceString === "end" ? "end" : "break";
+		return {
+			type: "terminal",
+			kind: kind,
+			id: id.sourceString,
+		};
+	},
+
+	External(_external: any, id: any) {
+		return {
+			type: "external",
+			id: id.sourceString,
 		};
 	},
 
@@ -89,94 +136,182 @@ semantics.addOperation("toAST", {
 		return { type: "topic", text: text.toAST() };
 	},
 
-	Dialog(_dialog: any, id: any, _open: any, contents: any, _close: any) {
-		return {
-			type: "dialog",
-			id: id.sourceString,
-			content: contents.children.map((c: any) => c.toAST()),
-		};
+	SubTopic(_colon: any, text: any) {
+		return { type: "subtopic", text: text.toAST() };
 	},
 
-	FlowControl(flowType: any, _open: any, contents: any, _close: any) {
+	FlowControl(
+		flowType: any,
+		condition: any,
+		_open: any,
+		contents: any,
+		_close: any,
+	) {
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		const cond =
+			condition.numChildren > 0
+				? condition.children[0].toAST()
+				: undefined;
+
 		return {
 			type: "flow",
-			variant: flowType.toAST(),
-			children: contents.children.map((c: any) => c.toAST()),
+			variant: flowType.sourceString,
+			condition: cond?.condition,
+			children: contentNodes,
 		};
 	},
 
-	FlowType(_type: any) {
-		return this.sourceString;
-	},
+	SystemUtterance(
+		_d: any,
+		text: any,
+		trigger: any,
+		letClause: any,
+		effectClause: any,
+	) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+		const letVal =
+			letClause.numChildren > 0
+				? letClause.children[0].toAST()
+				: undefined;
+		const eff =
+			effectClause.numChildren > 0
+				? effectClause.children[0].toAST()
+				: undefined;
 
-	SystemUtterance(_d: any, text: any, transition: any) {
 		return {
 			type: "utterance",
 			speaker: "system",
 			text: text.toAST(),
-			transition:
-				transition.numChildren > 0
-					? transition.children[0].toAST()
-					: undefined,
+			condition: trig?.condition,
+			when: trig?.when,
+			let: letVal?.value,
+			effect: eff?.value,
 		};
 	},
 
-	UserUtterance(_u: any, text: any, transition: any) {
+	UserUtterance(
+		_u: any,
+		text: any,
+		trigger: any,
+		letClause: any,
+		effectClause: any,
+	) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+		const letVal =
+			letClause.numChildren > 0
+				? letClause.children[0].toAST()
+				: undefined;
+		const eff =
+			effectClause.numChildren > 0
+				? effectClause.children[0].toAST()
+				: undefined;
+
 		return {
 			type: "utterance",
 			speaker: "user",
 			text: text.toAST(),
-			transition:
-				transition.numChildren > 0
-					? transition.children[0].toAST()
-					: undefined,
+			condition: trig?.condition,
+			when: trig?.when,
+			let: letVal?.value,
+			effect: eff?.value,
 		};
 	},
 
-	MixedUtterance(_du: any, fields: any) {
+	MixedUtterance(
+		_du: any,
+		text: any,
+		trigger: any,
+		letClause: any,
+		effectClause: any,
+	) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+		const letVal =
+			letClause.numChildren > 0
+				? letClause.children[0].toAST()
+				: undefined;
+		const eff =
+			effectClause.numChildren > 0
+				? effectClause.children[0].toAST()
+				: undefined;
+
 		return {
 			type: "utterance",
 			speaker: "mixed",
-			fields: fields.toAST(),
+			text: text.toAST(),
+			condition: trig?.condition,
+			when: trig?.when,
+			let: letVal?.value,
+			effect: eff?.value,
 		};
 	},
 
-	Event(_when: any, text: any, transition: any) {
+	AnonymousUtterance(
+		text: any,
+		trigger: any,
+		letClause: any,
+		effectClause: any,
+	) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+		const letVal =
+			letClause.numChildren > 0
+				? letClause.children[0].toAST()
+				: undefined;
+		const eff =
+			effectClause.numChildren > 0
+				? effectClause.children[0].toAST()
+				: undefined;
+
 		return {
-			type: "event",
-			trigger: text.toAST(),
-			transition:
-				transition.numChildren > 0
-					? transition.children[0].toAST()
-					: undefined,
+			type: "utterance",
+			speaker: "system",
+			text: text.toAST(),
+			condition: trig?.condition,
+			when: trig?.when,
+			let: letVal?.value,
+			effect: eff?.value,
+		};
+	},
+
+	UtteranceWithTransition(utterance: any, transition: any) {
+		const utt = utterance.toAST();
+		const trans =
+			transition.numChildren > 0
+				? transition.children[0].toAST()
+				: undefined;
+		return {
+			...utt,
+			transition: trans,
 		};
 	},
 
 	Condition(_if: any, text: any) {
-		return {
-			type: "condition",
-			condition: text.toAST(),
-		};
+		return { condition: text.toAST() };
+	},
+
+	When(_when: any, text: any) {
+		return { when: text.toAST() };
+	},
+
+	LetClause(_let: any, text: any) {
+		return { type: "let", value: text.toAST() };
+	},
+
+	EffectClause(_effect: any, text: any) {
+		return { type: "effect", value: text.toAST() };
 	},
 
 	Transition(arrow: any, id: any) {
+		const kind = arrow.sourceString === "..>" ? "repair" : "normal";
 		return {
-			arrow: arrow.sourceString,
+			kind: kind,
 			targetId: id.sourceString,
-		};
-	},
-
-	Arrow(_arrow: any) {
-		return this.sourceString;
-	},
-
-	FieldList(list: any) {
-		return list.toAST();
-	},
-
-	Field(id: any) {
-		return {
-			name: id.sourceString,
+			isPreferred: false,
 		};
 	},
 
@@ -186,10 +321,6 @@ semantics.addOperation("toAST", {
 
 	sqString(_open: any, chars: any, _close: any) {
 		return chars.sourceString;
-	},
-
-	identifier(_first: any, _rest: any) {
-		return this.sourceString;
 	},
 
 	_nonterminal(...children: any[]) {
@@ -202,10 +333,6 @@ semantics.addOperation("toAST", {
 		return this.sourceString;
 	},
 });
-
-const markDefaultFlows = (ast: DiagramAST) => {
-	// Simplificado - sem operações para a nova gramática
-};
 
 export const parseMolic = (input: string) => {
 	try {

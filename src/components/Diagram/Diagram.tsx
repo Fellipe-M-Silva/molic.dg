@@ -20,10 +20,6 @@ import './MolicEdge.css';
 import './MolicNode.css'; 
 import './Diagram.css';
 
-interface DiagramProps {
-  code: string;
-}
-
 const nodeTypes = {
   molicNode: MolicNode,
 };
@@ -32,6 +28,10 @@ const edgeTypes = {
   simultaneous: SimultaneousEdge,
   molic: MolicEdge,
 };
+
+interface DiagramProps {
+  code: string;
+}
 
 export const Diagram: React.FC<DiagramProps> = ({ code }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

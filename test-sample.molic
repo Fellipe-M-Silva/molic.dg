@@ -1,0 +1,19 @@
+scene Welcome {
+  topic: "Welcome to the store"
+  d: "Hello, welcome!" -> Purchase
+}
+
+scene Purchase {
+  topic: "Help customer select product"
+  subtopic: "Product selection"
+  and if "has money" {
+    u: "What would you like?" -> Checkout
+  }
+}
+
+scene Checkout {
+  topic: "Final purchase"
+  u: "Please proceed to payment" ..> PaymentSystem
+}
+
+external PaymentSystem
