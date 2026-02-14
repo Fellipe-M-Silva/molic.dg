@@ -1,145 +1,122 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { memo, useMemo } from 'react';
-import { Handle, Position, type NodeProps } from 'reactflow';
-import { type ContentNode } from '../../types/ast';
+import { Position, type NodeProps } from 'reactflow';
+import { BiDirectionalHandle } from './BiDirectionalHandle';
+import { type ContentNode, type FlowControlNode } from '../../types/ast';
 import './MolicNode.css'; 
+
+const POSITIONS = {
+  basic: { '1': '25%', '2': '75%', '3': '50%' },
+  scene: { '1': '10%', '2': '30%', '3': '50%', '4': '70%', '5': '90%' }
+};
+
+const HandleSet = ({ isScene }: { isScene: boolean }) => {
+  const posMap = isScene ? POSITIONS.scene : POSITIONS.basic;
+  const indices = isScene ? ['1', '2', '3', '4', '5'] : ['1', '2', '3'];
+
+  const getStyle = (i: string, isVertical: boolean) => {
+    const val = (posMap as any)[i]; 
+    return isVertical ? { left: val } : { top: val };
+  };
+
+  return (
+    <>
+      {indices.map(i => <BiDirectionalHandle key={`t-${i}`} id={`t-${i}`} position={Position.Top} style={getStyle(i, true)} />)}
+      {indices.map(i => <BiDirectionalHandle key={`b-${i}`} id={`b-${i}`} position={Position.Bottom} style={getStyle(i, true)} />)}
+      {indices.map(i => <BiDirectionalHandle key={`l-${i}`} id={`l-${i}`} position={Position.Left} style={getStyle(i, false)} />)}
+      {indices.map(i => <BiDirectionalHandle key={`r-${i}`} id={`r-${i}`} position={Position.Right} style={getStyle(i, false)} />)}
+    </>
+  );
+};
 
 const renderContent = (items: ContentNode[]) => {
   return items.map((item, index) => {
-    
-    // 1. TOPIC (Sub-tópicos dentro de dialogs)
-    if (item.type === 'topic') {
-      return <div key={index} className='molic-topic'>{item.text}</div>;
-    }
+    if (item.type === 'topic') return <div key={index} className='molic-topic'>{item.text}</div>;
+    if (item.type === 'let') return <div key={index} className="molic-let"><strong>let</strong> {`{ ${item.variable}: ${item.value} }`}</div>;
+    if (item.type === 'why') return <div key={index} className="molic-why"><strong>Why:</strong> {item.text}</div>;
+    if (item.type === 'utterance') return null;
 
-    // 2. LET (Variáveis)
-    if (item.type === 'let') {
-      return (
-        <div key={index} className="molic-let">
-          <strong>let</strong> {`{ ${item.variable}: ${item.value} }`}
-        </div>
-      );
-    }
-
-    // 3. WHY (Racional)
-    if (item.type === 'why') {
-      return <div key={index} className="molic-why"><strong>Why:</strong> {item.text}</div>;
-    }
-
-    // 4. UTTERANCES (u, d, du) com Condicional
-    if (item.type === 'utterance') {
-      let prefix = '';
-      let styleClass = 'molic-utterance';
-      if (item.speaker === 'user') { prefix = 'u:'; styleClass += ' user'; }
-      else if (item.speaker === 'system') { prefix = 'd:'; styleClass += ' system'; }
-      else { prefix = 'd+u:'; styleClass += ' mixed'; } // d+u explícito
-      
-      return (
-        <div key={index} className={styleClass}>
-          <span className="molic-prefix">{prefix}</span>
-          <span>{item.text}</span>
-          {item.condition && <span className="molic-utterance-cond">(if {item.condition})</span>}
-        </div>
-      );
-    }
-
-    // 5. FLUXOS (AND, SEQ, OR, XOR) - Recursivo
     if (item.type === 'flow') {
       const type = item.variant.toUpperCase();
       const condition = item.condition ? `(if ${item.condition})` : null;
-      
+      const isDefault = (item as FlowControlNode).isDefaultLayer;
+      const className = isDefault ? 'molic-flow default-layer' : `molic-flow ${item.variant}`;
+
       return (
-        <div key={index} className={`molic-flow ${item.variant}`}>
-          <div className="molic-flow-label">
-            <span className="molic-flow-type">{type}</span>
-            {condition && <span className="molic-utterance-cond">{condition}</span>}
-          </div>
-          <div className="molic-flow-content">
-            {/* RECURSÃO AQUI */}
-            {item.children && renderContent(item.children)}
-          </div>
+        <div key={index} className={className}>
+          {!isDefault && (
+            <div className="molic-flow-label">
+              <span className="molic-flow-type">{type}</span>
+              {condition && <span className="molic-utterance-cond">{condition}</span>}
+            </div>
+          )}
+          <div className="molic-flow-content">{item.children && renderContent(item.children)}</div>
         </div>
       );
     }
-
-    // 6. DIALOG (Agrupamento Visual)
-    if (item.type === 'dialog') {
-      return (
-        <div key={index} className="molic-dialog">
-          {item.children && renderContent(item.children)}
-        </div>
-      );
-    }
-
-    if (item.type === 'event') return <div key={index} className="molic-event">⚡ {item.trigger}</div>;
-    
+    if (item.type === 'dialog') return <div key={index} className="molic-dialog">{item.children && renderContent(item.children)}</div>;
+    if (item.type === 'event' && !(item as any).transition) return <div key={index} className="molic-event">⚡ {item.trigger}</div>;
     return null;
   });
 };
 
 export const MolicNode = memo(({ data, selected }: NodeProps) => {
-  const isGlobal = data.isGlobal;
-  const isAlert = data.variant === 'alert';
-  const isMain = data.isMain;
   const visibleContent = useMemo(() => {
     if (!data.rawContent) return [];
-    return data.rawContent.filter((item: ContentNode) => item.type !== 'topic');
+    return data.rawContent.filter((item: ContentNode) => item.type !== 'topic' && item.type !== 'utterance');
   }, [data.rawContent]);
 
-  const hasContent = visibleContent.length > 0;
-
+  const type = data.nodeType || 'scene';
+  const isGlobal = type === 'global';
+  const isSceneLike = type === 'scene' || isGlobal; 
+  
   const classes = [
     'molic-node',
     selected ? 'selected' : '',
     isGlobal ? 'global' : '',
-    isAlert ? 'alert' : '',
-    isMain ? 'main' : '',
-    !hasContent ? 'collapsed' : ''
+    data.variant === 'alert' ? 'alert' : '',
+    data.isMain ? 'main' : '',
+    type === 'startNode' ? 'terminal start' : '',
+    type === 'endNode' ? 'terminal end' : '',
+    type === 'completionNode' ? 'terminal completion' : '',
+    type === 'forkNode' ? 'fork' : '',
+    type === 'processNode' ? 'process' : '',
+    type === 'externalNode' ? 'external' : '',
+    type === 'contactNode' ? 'contact' : '',
   ].filter(Boolean).join(' ');
 
-  // --- CONFIGURAÇÃO GLOBAL (Minimalista) ---
   if (isGlobal) {
     return (
-      <div className={classes}
-      >
-        <div style={{ position: 'absolute', top: '-25px', width: '100%', textAlign: 'center', fontSize: '11px', fontWeight: 'bold', fontStyle: 'italic', color: 'var(--text-muted)' }}>
-        </div>
-        <Handle type="target" position={Position.Top} id="t-1" />
-        <Handle type="target" position={Position.Left} id="l-1" />
-        <Handle type="source" position={Position.Right} id="r-1" />
-        <Handle type="source" position={Position.Bottom} id="b-1" />
+      <div className={classes} style={{ minHeight: '80px', minWidth: '150px' }}>
+        <div className="global-label">Global Context</div>
+        <HandleSet isScene={true} />
       </div>
     );
   }
 
-  // --- CONFIGURAÇÃO CENA NORMAL (Inalterada) ---
+  if (!isSceneLike) {
+    return (
+      <div className={classes}>
+        {type === 'endNode' && <div className="terminal-double-circle"><div className="inner" /></div>}
+        {type === 'completionNode' && <div className="completion-line" />}
+        {type === 'processNode' && <div className="process-box" />}
+        {type === 'externalNode' && <div className="external-shape"><span className="external-label">{data.label}</span></div>}
+        {type === 'contactNode' && <><div className="contact-icon">user</div><span className="contact-label">{data.label}</span></>}
+        
+        {['startNode', 'forkNode'].includes(type) && (
+           <div style={{ textAlign: 'center', padding: '4px', fontWeight: 'bold' }}>{data.label}</div>
+        )}
+        <HandleSet isScene={false} />
+      </div>
+    );
+  }
+
+  const hasBody = visibleContent.length > 0;
   return (
     <div className={classes}>
-      <Handle type="target" position={Position.Top} id="t-1" style={{ left: '10%' }} />
-      <Handle type="target" position={Position.Top} id="t-2" style={{ left: '30%' }} />
-      <Handle type="target" position={Position.Top} id="t-3" style={{ left: '50%' }} />
-      <Handle type="target" position={Position.Top} id="t-4" style={{ left: '70%' }} />
-      <Handle type="target" position={Position.Top} id="t-5" style={{ left: '90%' }} />
-
-      <Handle type="target" position={Position.Left} id="l-1" style={{ top: '25%' }} />
-      <Handle type="target" position={Position.Left} id="l-2" style={{ top: '50%' }} />
-      <Handle type="target" position={Position.Left} id="l-3" style={{ top: '75%' }} />
-
       <div className="molic-node-header">{data.label}</div>
-      {hasContent && (
-        <div className="molic-node-body">
-          {renderContent(data.rawContent)}
-        </div>
-      )}
-
-      <Handle type="source" position={Position.Right} id="r-1" style={{ top: '25%' }} />
-      <Handle type="source" position={Position.Right} id="r-2" style={{ top: '50%' }} />
-      <Handle type="source" position={Position.Right} id="r-3" style={{ top: '75%' }} />
-
-      <Handle type="source" position={Position.Bottom} id="b-1" style={{ left: '10%' }} />
-      <Handle type="source" position={Position.Bottom} id="b-2" style={{ left: '30%' }} />
-      <Handle type="source" position={Position.Bottom} id="b-3" style={{ left: '50%' }} />
-      <Handle type="source" position={Position.Bottom} id="b-4" style={{ left: '70%' }} />
-      <Handle type="source" position={Position.Bottom} id="b-5" style={{ left: '90%' }} />
+      {hasBody && <div className="molic-node-body">{renderContent(data.rawContent)}</div>}
+      <HandleSet isScene={true} />
     </div>
   );
 });

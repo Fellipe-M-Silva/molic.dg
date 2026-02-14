@@ -1,72 +1,93 @@
-export type ElementType = "scene" | "global";
-export type BlockType = "seq" | "xor" | "or" | "dialog";
-
 export interface ASTNode {
 	type: string;
-	source?: {
-		start: number;
-		end: number;
-	};
 }
 
 export interface DiagramAST {
-	elements: (SceneNode | GlobalNode)[];
+	elements: ElementNode[];
 }
+
+export type ElementNode =
+	| SceneNode
+	| GlobalNode
+	| TerminalNode
+	| ForkNode
+	| ProcessNode
+	| ExternalNode
+	| ContactNode;
+
+export type ContentNode =
+	| TopicNode
+	| LetNode
+	| WhyNode
+	| DialogNode
+	| FlowControlNode
+	| UtteranceNode
+	| EventNode;
+
+// --- ESTRUTURAS PRINCIPAIS ---
 
 export interface SceneNode extends ASTNode {
 	type: "scene";
 	variant: "normal" | "alert";
-	isMain?: boolean;
-	id: string;
 	label?: string;
-	content: ContentNode[];
-	exits: ContentNode[];
+	isMain: boolean;
+	id: string;
+	content: ContentNode[]; // Conteúdo interno (Topic, Dialogs, Utterances sem saída)
+	exits: ContentNode[]; // Utterances/Events que causam transição de cena
 }
 
 export interface GlobalNode extends ASTNode {
 	type: "global";
 	id: string;
 	content: ContentNode[];
+	exits: ContentNode[]; // Transições globais
 }
 
-// Conteúdos possíveis dentro de uma cena
-export type ContentNode =
-	| TopicNode
-	| FlowControlNode
-	| DialogNode
-	| UtteranceNode
-	| EventNode
-	| ConditionNode
-	| WhyNode
-	| LetNode
-	| ProcessNode
-	| TerminalNode
-	| ForkNode
-	| ExternalNode
-	| ContactNode;
-
-export interface UtteranceNode extends ASTNode {
-	type: "utterance";
-	speaker: "user" | "system" | "mixed";
-	text: string;
-	condition?: string;
-	transition?: TransitionNode;
+export interface ProcessNode extends ASTNode {
+	type: "process";
+	id: string;
+	content: ContentNode[]; // Agora suporta múltiplas saídas/falas
 }
 
-export interface FlowControlNode extends ASTNode {
-	type: "flow";
-	variant: "seq" | "xor" | "or" | "and";
-	condition?: string;
-	children: ContentNode[];
+export interface ForkNode extends ASTNode {
+	type: "fork";
+	id: string;
+	content: (
+		| UtteranceNode
+		| { type: "utterance"; text: ""; transition: TransitionNode }
+	)[];
 }
 
-export interface DialogNode extends ASTNode {	
-	type: "dialog";
-	children: ContentNode[];
+export interface StartNode extends ASTNode {
+	type: "terminal";
+	kind: "start";
+	id: string;
+	content: UtteranceNode[]; // Start agora tem conteúdo (falas)
 }
 
-export interface WhyNode extends ASTNode {
-	type: "why";
+export interface TerminalNode extends ASTNode {
+	type: "terminal";
+	kind: "start" | "end" | "break";
+	id: string;
+	targetId?: string; // Apenas para 'start'
+}
+
+export interface ExternalNode extends ASTNode {
+	type: "external";
+	id: string;
+}
+
+export interface ContactNode extends ASTNode {
+	type: "contact";
+	id: string;
+	name: string;
+	flows: { targetId: string; label?: ContentNode }[];
+}
+
+// --- CONTEÚDO ---
+
+export interface TopicNode extends ASTNode {
+	type: "topic";
 	text: string;
 }
 
@@ -76,14 +97,22 @@ export interface LetNode extends ASTNode {
 	value: string;
 }
 
-export interface TransitionNode {
-	targetId: string;
-	kind: "normal" | "repair"; // -> ou ..>
+export interface WhyNode extends ASTNode {
+	type: "why";
+	text: string;
 }
 
-export interface TopicNode {
-	type: "topic";
-	text: string;
+export interface DialogNode extends ASTNode {
+	type: "dialog";
+	children: ContentNode[];
+}
+
+export interface FlowControlNode extends ASTNode {
+	type: "flow";
+	variant: "seq" | "xor" | "or" | "and";
+	condition?: string;
+	isDefaultLayer?: boolean;
+	children: ContentNode[];
 }
 
 export interface EventNode extends ASTNode {
@@ -92,58 +121,22 @@ export interface EventNode extends ASTNode {
 	transition?: TransitionNode;
 }
 
-export interface ConditionNode extends ASTNode {
-	type: "condition";
-	expression: string;
-}
+// --- UTTERANCES & TRANSITIONS ---
 
-export interface EventNode {
-	type: "event";
-	trigger: string;
+export interface UtteranceNode extends ASTNode {
+	type: "utterance";
+	speaker: "system" | "user" | "mixed";
+	text: string;
+	condition?: string;
+	when?: string;
+	let?: string; // Inline let
+	effect?: string; // Inline effect
+	why?: string; // Inline why
 	transition?: TransitionNode;
 }
 
-export interface ConditionNode {
-	type: "condition";
-	expression: string;
-}
-
-export interface ProcessNode {
-	type: "process";
-	action: string;
-	transition?: TransitionNode;
-}
-
-export interface ForkNode {
-  type: "fork";
-  id: string;
-  content: ContentNode[]; 
-}
-export interface TerminalNode {
-	type: "terminal";
-	kind: "start" | "end" | "break";
-	id: string;
-	targetId?: string;
-}
-
-export interface ProcessNode {
-	type: "process";
-	id: string; 
-	action: string;
-	transition?: TransitionNode;
-}
-
-export interface ExternalNode {
-  type: "external";
-  id: string;
-}
-
-export interface ContactNode {
-	type: "contact";
-	id: string; 
-	name: string;
-	flows: {
-		targetId: string;
-		label?: string;
-	}[];
+export interface TransitionNode {
+	targetId: string;
+	kind: "normal" | "repair" | "simultaneous" | "mediated";
+	isPreferred: boolean;
 }

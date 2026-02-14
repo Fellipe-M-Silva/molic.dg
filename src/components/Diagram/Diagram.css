@@ -1,0 +1,33 @@
+/* --- Lógica de Handles Inteligentes (Pontos de conexão) --- */
+
+/* Estilo base dos handles */
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+  background: #555;
+  opacity: 0; /* Invisível por padrão */
+  transition: opacity 0.2s ease-in-out, background-color 0.2s;
+  border-radius: 50%;
+  border: 1px solid white;
+}
+
+/* 1. Quando o mouse passa em QUALQUER nó (Scene, Global ou Special) */
+.molic-node:hover .react-flow__handle,
+.special-node:hover .react-flow__handle {
+  opacity: 1;
+}
+
+/* 2. Quando o usuário está arrastando uma linha (modo de conexão) */
+.app-connecting .react-flow__handle {
+  opacity: 1;
+  background: var(--primary); /* Destaque azul/verde */
+  width: 12px;
+  height: 12px;
+}
+
+/* --- Ajustes Gerais do React Flow --- */
+.react-flow__controls {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}

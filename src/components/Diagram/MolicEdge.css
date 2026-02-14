@@ -1,0 +1,73 @@
+/* --- Rótulos das Arestas (Edge Labels / Balões) --- */
+
+/* O container principal que envolve o texto */
+.molic-edge-label-container {
+  background-color: var(--bg-canvas, #ffffff); /* Fundo branco CRUCIAL */
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-base, #ccc);
+  
+  /* Tipografia */
+  font-family: sans-serif;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-base, #000);
+  
+  /* Sombra para destacar da linha */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  
+  /* Garante que o mouse interaja se necessário */
+  pointer-events: all;
+  
+  /* Garante que fique acima das linhas */
+  z-index: 10; 
+}
+
+/* Linhas de texto dentro do rótulo */
+.molic-edge-label-line {
+  line-height: 1.4;
+}
+
+/* Destaque para a fala principal (d: ou u:) */
+.molic-edge-label-line.main {
+  font-weight: 600;
+  color: var(--text-base, #000);
+}
+
+/* Metadados (if, let, why) ficam menores e cinzas */
+.molic-edge-label-line.meta {
+  font-size: 9px;
+  color: #666;
+  font-style: italic;
+}
+
+/* --- Tratamento de Erros nos Rótulos --- */
+.molic-edge-label-container.error {
+  border: 1px solid #ff0000;
+  background-color: #fff0f0;
+}
+
+.error-text {
+  color: #cc0000;
+  font-weight: bold;
+}
+
+/* --- Estilização das Linhas (SVG Paths) --- */
+
+/* Aresta Inválida (Vermelha e pontilhada) */
+.react-flow__edge.invalid-edge .react-flow__edge-path {
+  stroke: #ff0000 !important;
+  stroke-dasharray: 2, 2 !important;
+  stroke-width: 2px;
+}
+
+/* Aresta Simultânea (=>) - Sem rótulo, linha sólida */
+.react-flow__edge.simultaneous .react-flow__edge-path {
+  stroke-dasharray: 0;
+  stroke-width: 2px;
+}
+
+/* Aresta de Reparo (..>) - Pontilhada */
+.react-flow__edge.repair .react-flow__edge-path {
+  stroke-dasharray: 5, 5;
+}

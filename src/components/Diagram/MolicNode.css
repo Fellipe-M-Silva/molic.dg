@@ -1,366 +1,165 @@
+/* --- Nó Básico --- */
 .molic-node {
-	background: var(--bg-base);
-	border: 1px solid var(--border-base);
-	border-radius: 8px;
-	min-width: 240px;
-	max-width: 320px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-	font-size: 12px;
-	text-align: left;
-	position: relative;
-}
-
-.molic-node.main{
-	border: 3px solid var(--primary);
+  background: var(--bg-base, #fff);
+  border: 1px solid var(--border-base, #ccc);
+  border-radius: 8px;
+  min-width: 180px; /* Largura mínima para não colapsar */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 12px;
+  text-align: left;
+  position: relative;
+  transition: all 0.2s ease;
 }
 
 .molic-node.selected {
-	border-color: var(--primary);
-	box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+  border-color: var(--primary, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
 
-.molic-node.alert {
-	border-style: dashed;
-}
-
+/* --- Global --- */
 .molic-node.global {
-	border-radius: 12px;
-	background-color: var(--bg-muted);
-	width: 160px;
-	height: 48px;
+  background-color: #f0f2f5; /* Cinza claro */
+  border: 2px dashed #bdc3c7;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+.global-label {
+  font-weight: bold;
+  color: #7f8c8d;
+  font-style: italic;
 }
 
+/* --- Scene Header/Body --- */
 .molic-node-header {
-	padding: 8px 12px;
-	border-bottom: 1px solid var(--border-muted);
-	font-weight: 600;
-  /* background-color: var(--bg-alt); */
-	text-align: center;
-  border-radius: 16px 16px 0 0;
-}
-
-.molic-node.collapsed .molic-node-header {
-  border-bottom: none;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-muted, #eee);
+  font-weight: 600;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px 8px 0 0;
 }
 
 .molic-node-body {
-	padding: 8px;
+  padding: 8px;
 }
 
-/* Utterances */
-.molic-utterance {
-	margin-left: 8px;
-	margin-bottom: 6px;
-
-	&:last-child {
-		margin-bottom: 0;
-	}
-}
-.molic-utterance.user {
-	color: var(--text-base);
-}
-.molic-utterance.system {
-	color: var(--text-base);
-}
-.molic-prefix {
-	font-weight: bold;
-	margin-right: 6px;
-	opacity: 0.7;
-}
-
-/* ---------------------------- */
-
-.special-node {
-	position: relative;
-	transition: all 0.2s;
-}
-
-.special-node.selected {
-	outline: 2px solid var(--primary);
-	box-shadow: 0 0 0 2px var(--primary);
-}
-
-.start-node {
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
-	background-color: var(--text-base);
-}
-
-.end-node {
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
-	border: 2px solid var(--text-base);
-	background-color: var(--bg-canvas);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-.end-node-inner {
-	width: 16px;
-	height: 16px;
-	border-radius: 50%;
-	background-color: var(--text-base);
-}
-
-.fork-node {
-	width: 128px;
-	height: 16px;
-	background-color: var(--text-base);
-	border-radius: 4px;
-}
-
-/* Process */
-.molic-process {
-	display: flex;
-	align-items: center;
-	background: var(--bg-canvas);
-	border: 1px dashed var(--border-base);
-	padding: 4px;
-	margin: 4px 0;
-	font-family: monospace;
-}
-.molic-process-icon {
-	margin-right: 6px;
-}
-
-.completion-node {
-	width: 160px;
-	height: 64px;
-	background-color: var(--bg-base);
-	border: 1px solid var(--border-base);
-	border-radius: 8px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 16px;
-}
-
-.completion-line {
-	width: 100%;
-	height: 2px;
-	background-color: var(--text-base);
-}
-
-.process-node {
-	width: 64px;
-	height: 64px;
-	background-color: var(--text-base);
-	border-radius: 4px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.external-node {
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
-	border: 2px solid var(--text-base);
-	background-color: var(--bg-canvas);
-	position: relative;
-	/* overflow: hidden; */
-}
-
-.external-node-fill {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 50%;
-	height: 100%;
-	border-radius: 50% 0 0 50%;
-	background-color: var(--text-base);
-}
-
-.external-label {
-	position: absolute;
-	top: -24px;
-	width: 150px;
-	left: 50%;
-	transform: translateX(-50%);
-	text-align: center;
-	font-size: 11px;
-	color: var(--text-muted);
-	white-space: nowrap;
-}
-
-.contact-node {
-	width: 64px;
-	height: 64px;
-	border-radius: 50%;
-	background-color: var(--bg-base);
-	border: 1px solid var(--text-base);
-	position: relative;
-}
-
-.contact-label {
-	position: absolute;
-	top: -24px;
-	left: 50%;
-	transform: translateX(-50%);
-	font-size: 11px;
-	font-weight: bold;
-	color: var(--text-base);
-	white-space: nowrap;
-	background: var(--bg-base);
-	padding: 2px 6px;
-	border-radius: 4px;
-}
-
-/* Flows */
+/* --- Fluxos --- */
 .molic-flow {
-	border: 1px solid var(--border-muted);
-	border-radius: 4px;
-	padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px;
+  margin-bottom: 8px;
+  position: relative;
 }
 
-.molic-flow-type {
-	font-size: 12px;
-	font-weight: bold;
-	color: var(--text-alt);
-	background: var(--bg-alt);
-	padding: 2px 4px;
-	border-radius: 4px;
+/* AND Default (Invisível) */
+.molic-flow.default-layer {
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
-/* Event & Condition */
-.molic-event {
-	color: #d48806; /* Gold/Orange */
-	font-weight: 500;
-	margin: 4px 0;
-}
-.molic-condition {
-	color: #096dd9; /* Blue */
-	font-family: monospace;
-	margin: 4px 0;
-}
-
-.molic-empty {
-	color: var(--text-muted);
-	text-align: center;
-	font-style: italic;
-	padding: 4px;
-}
-
-/* --- Lógica de Handles Inteligentes --- */
-
-/* Handles genéricos do React Flow */
-.react-flow__handle {
-	width: 10px; /* Tamanho da bolinha */
-	height: 10px;
-	background: #555; /* Cor padrão */
-	opacity: 0; /* Invisível por padrão */
-	transition:
-		opacity 0.2s ease-in-out,
-		background-color 0.2s;
-	border-radius: 50%;
-	border: 1px solid white; /* Um contorno branco ajuda no contraste */
-}
-
-/* 1. Quando o mouse passa em QUALQUER nó (Scene, Global ou Special) */
-.molic-node:hover .react-flow__handle,
-.special-node:hover .react-flow__handle {
-	opacity: 1;
-}
-
-/* 2. Quando o usuário está arrastando uma linha (modo de conexão) */
-.app-connecting .react-flow__handle {
-	opacity: 1;
-	background: var(--primary); /* Destaque azul/verde */
-	width: 12px; /* Fica um pouco maior para facilitar o clique */
-	height: 12px;
-}
-
-/* ... (estilos anteriores) ... */
-
-.molic-topic {
-	font-weight: bold;
-	margin-bottom: 6px;
-}
-
-/* LET: Variáveis */
-.molic-let {
-	display: inline-block;
-	font-family: monospace;
-	padding: 2px 4px;
-	border-radius: 4px;
-	background-color: var(--bg-alt);
-	margin-bottom: 4px;
-	font-size: 11px;
-}
-
-/* WHY: Racional de Design */
-.molic-why {
-	font-style: italic;
-	color: var(--text-muted);
-	border-left: 2px solid var(--border-base);
-	padding-left: 6px;
-	font-size: 12px;
-}
-.molic-why:not(:last-child) {
-	margin-bottom: 16px;
-}
-
-/* FLUXOS: AND, XOR, SEQ, OR */
-.molic-flow {
-	border: 1px solid var(--border-base);
-	border-radius: 4px;
-	padding: 6px;
-
-	not(:last-child) {
-		margin-bottom: 12px;
-	}
-}
-
-.molic-flow.seq {
-	border-left: 3px solid #8c8c8c;
-} /* Cinza */
-.molic-flow.xor {
-	border-left: 3px solid #69c0ff;
-} /* Azul */
-.molic-flow.or {
-	border-left: 3px solid #95de64;
-} /* Verde */
-.molic-flow.and {
-	border-left: 3px solid #ffadd2;
-} /* Rosa */
+/* Cores dos Fluxos */
+.molic-flow.seq { border-left: 3px solid #8c8c8c; }
+.molic-flow.xor { border-left: 3px solid #69c0ff; }
+.molic-flow.or  { border-left: 3px solid #95de64; }
+.molic-flow.and:not(.default-layer) { border-left: 3px solid #ffadd2; }
 
 .molic-flow-label {
-	font-size: 10px;
-	color: var(--text-muted);
-	margin-bottom: 4px;
-	display: flex;
-	padding-bottom: 4px;
-	border-bottom: 1px solid var(--border-muted);
-	justify-content: space-between;
-	align-items: center;
+  font-size: 10px;
+  color: #666;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
 }
 
-.molic-flow-condition {
-	font-weight: normal;
-	font-family: monospace;
-	font-style: italic;
-	font-size: 10px;
-	padding: 0 4px;
-	border-radius: 2px;
+/* --- Terminais (Start/End) --- */
+.molic-node.terminal {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  min-width: auto;
 }
 
-/* DIALOG BLOCK */
-.molic-dialog {
-	border: 1px solid var(--border-base);
-	padding: 6px;
-	border-radius: 4px;
-  margin-bottom: 8px;
-	not(:last-child) {
-		margin: 8px 0;
-	}
+.molic-node.terminal.start {
+  width: 40px;
+  height: 40px;
+  background-color: #000;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Utterance Condition */
-.molic-utterance-cond {
-	float: right;
-	font-size: 10px;
-	font-family: monospace;
-	color: var(--text-muted);
-	margin-left: 8px;
+.molic-node.terminal.end {
+  width: 40px;
+  height: 40px;
+}
+.terminal-double-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.terminal-double-circle .inner {
+  width: 20px;
+  height: 20px;
+  background-color: #000;
+  border-radius: 50%;
+}
+
+/* --- Process --- */
+.molic-node.process {
+  min-width: auto;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.process-box {
+  width: 60px;
+  height: 60px;
+  background-color: #000;
+  border-radius: 4px;
+}
+
+/* --- Contact --- */
+.molic-node.contact {
+  border: 2px solid #000;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  min-width: auto;
+}
+.contact-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+.contact-label {
+  font-size: 9px;
+  font-weight: bold;
+}
+
+/* --- External --- */
+.molic-node.external {
+  min-width: auto;
+  border: none;
+  background: transparent;
+}
+.external-shape {
+  border: 2px solid #000;
+  border-radius: 0 50% 50% 0; /* Forma de D */
+  padding: 8px 16px;
+  background: #fff;
 }

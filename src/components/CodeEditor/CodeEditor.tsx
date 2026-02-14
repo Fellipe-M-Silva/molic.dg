@@ -116,7 +116,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
   }, [resolvedTheme]);
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
+    <div style={{ height: '100%', width: '100%' }} onKeyDown={(e) => e.stopPropagation()}>
       <Editor
         height="100%"
         defaultLanguage="molic" 

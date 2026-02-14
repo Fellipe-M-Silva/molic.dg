@@ -1,94 +1,92 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
-  type Node, 
-  type Edge, 
-  type OnNodesChange, 
-  type OnEdgesChange,
   ConnectionMode,
-  type Connection,
+  useNodesState,
+  useEdgesState,
   type OnConnectStart,
   type OnConnectEnd,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { useTheme } from '../../hooks/useTheme';
+
 import { MolicNode } from './MolicNode';
-import { CompletionNode, ContactNode, EndNode, ExternalNode, ForkNode, ProcessNode, StartNode } from './SpecialNodes';
+import { SimultaneousEdge } from './SimultaneousEdge';
+import { MolicEdge } from './MolicEdge';
+import { transformer } from '../../core/transformer';
+import { parseMolic } from '../../core/parser';
+
+import './MolicEdge.css';
+import './MolicNode.css'; 
+import './Diagram.css';
+
 interface DiagramProps {
-  nodes: Node[];
-  edges: Edge[];
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
-  onReconnect: (oldEdge: Edge, newConnection: Connection) => void;
+  code: string;
 }
 
-export const Diagram: React.FC<DiagramProps> = ({ 
-  nodes, 
-  edges, 
-  onNodesChange, 
-  onEdgesChange, 
-  onReconnect,
-}) => {
-  const { resolvedTheme } = useTheme();
+const nodeTypes = {
+  molicNode: MolicNode,
+};
 
-  const gridColor = resolvedTheme === 'dark' ? '#333' : '#e0e0e0';
+const edgeTypes = {
+  simultaneous: SimultaneousEdge,
+  molic: MolicEdge,
+};
 
-  const nodeTypes = useMemo(() => ({
-    molicNode: MolicNode,
-    startNode: StartNode,
-    endNode: EndNode,
-    forkNode: ForkNode,
-    completionNode: CompletionNode,
-    processNode: ProcessNode,
-    externalNode: ExternalNode,
-    contactNode: ContactNode,
-  }), []);
-
-  // 1. Estado para controlar se está arrastando
+export const Diagram: React.FC<DiagramProps> = ({ code }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // 2. Eventos de início e fim de conexão
-  const onConnectStart: OnConnectStart = useCallback(() => {
-    setIsConnecting(true);
-  }, []);
+  const onConnectStart: OnConnectStart = useCallback(() => setIsConnecting(true), []);
+  const onConnectEnd: OnConnectEnd = useCallback(() => setIsConnecting(false), []);
 
-  const onConnectEnd: OnConnectEnd = useCallback(() => {
-    setIsConnecting(false);
-  }, []);
+  useEffect(() => {
+    if (!code) return;
+    const { ast, error } = parseMolic(code);
+    
+    if (error) {
+      console.warn("Syntax Error:", error);
+      return; 
+    }
+
+    if (ast) {
+      const { nodes: layoutNodes, edges: layoutEdges } = transformer(ast);
+      setNodes(layoutNodes);
+      setEdges(layoutEdges);
+    }
+  }, [code, setNodes, setEdges]);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onReconnect={onReconnect}
-        nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
         fitViewOptions={{ padding: 0.2 }}
+        minZoom={0.1}
         snapToGrid={true}
         snapGrid={[16, 16]}
-        style={{ backgroundColor: 'var(--bg-canvas)' }}
         className={isConnecting ? 'app-connecting' : ''}
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
+        style={{ backgroundColor: 'var(--bg-canvas, #f5f5f5)' }}
       >
-        <Background 
-          color={gridColor} 
-          gap={16} 
-          size={1} 
-        />
-        
-        <Controls 
-          style={{ 
-            fill: 'var(--text-base)', 
-            backgroundColor: 'var(--bg-base)',
-            borderColor: 'var(--border-base)' 
-          }} 
-        />
+        <Background gap={16} size={1} />
+        <Controls />
+        <svg style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }}>
+          <defs>
+            <marker id="double-arrowhead" viewBox="0 0 20 10" refX="18" refY="5" markerWidth="10" markerHeight="10" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-base, #000)" />
+              <path d="M 8 0 L 18 5 L 8 10 z" fill="var(--text-base, #000)" />
+            </marker>
+          </defs>
+        </svg>
       </ReactFlow>
     </div>
   );
