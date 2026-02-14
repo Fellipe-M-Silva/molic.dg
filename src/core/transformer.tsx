@@ -21,30 +21,40 @@ const getEdgeLabelJSX = (item: any, validationError?: string, overridePrefix?: s
 
   const lines: React.ReactNode[] = [];
   const { type, trigger, speaker, text, condition, when, let: letVar, effect, why } = item;
+  const transitionWhy = item.transition?.why;
+  const whyValue = transitionWhy ?? why;
 
   const whenText = type === "event" ? trigger : when;
-  if (whenText) lines.push(<div key="when" className="molic-edge-label-line meta" style={{ fontWeight: 600, color: '#d48806' }}>when: {whenText}</div>);
+  if (whenText) {
+    lines.push(
+      <div key="when" className="molic-edge-label-line meta" style={{ fontWeight: 600, color: '#d48806' }}>
+        when: {whenText}
+      </div>
+    );
+  }
 
-  if ((speaker === "system" || speaker === "mixed") && condition && condition !== "") {
-    lines.push(<div key="cond-sys" className="molic-edge-label-line meta">if: {condition}</div>);
+  if (condition !== undefined) {
+    lines.push(
+      <div key="cond" className="molic-edge-label-line meta">
+        if: {condition ?? ""}
+      </div>
+    );
   }
 
   if (type === "utterance") {
     let mainText = "";
     const prefix = overridePrefix ? `${overridePrefix}: ` : getBasePrefix(speaker);
     if (speaker === "system" || speaker === "mixed") {
-      if (condition === "") mainText = `if / ${prefix}${text || ''}`;
-      else mainText = `${prefix}${text || ''}`;
+      mainText = `${prefix}${text || ''}`;
     } else {
       mainText = `${prefix}${text || ''}`;
     }
     if (mainText) lines.push(<div key="main" className="molic-edge-label-line main">{mainText}</div>);
   }
 
-  if (speaker === "user" && condition !== undefined) lines.push(<div key="cond-u" className="molic-edge-label-line meta">{condition ? `if: ${condition}` : `if`}</div>);
   if (letVar) lines.push(<div key="let" className="molic-edge-label-line meta">let: {letVar}</div>);
   if (effect) lines.push(<div key="effect" className="molic-edge-label-line meta">effect: {effect}</div>);
-  if (why) lines.push(<div key="why" className="molic-edge-label-line meta">why: {why}</div>);
+  if (whyValue) lines.push(<div key="why" className="molic-edge-label-line meta">why: {whyValue}</div>);
 
   if (lines.length === 0) return null;
   return <div className="molic-edge-label-container">{lines}</div>;
@@ -161,20 +171,24 @@ export const transformer = (ast: DiagramAST) => {
         currentX += 150;
     }
     else if (element.type === "fork") {
-        nodes.push({ id: element.id, type: "molicNode", position: { x: currentX, y: currentY + 60 }, data: { label: element.id, nodeType: 'forkNode' } });
-        if(element.content) {
-            element.content.forEach((item:any, idx:number) => {
-                if(item.transition) createEdge(element.id, item, undefined, idx%2===0?'fork-out-1':'fork-out-2');
-            });
-        }
-        currentX += 200;
+      nodes.push({ id: element.id, type: "molicNode", position: { x: currentX, y: currentY + 60 }, data: { label: element.id, nodeType: 'forkNode' } });
+      if(element.content) {
+        let forkIndex = 0;
+        element.content.forEach((item:any) => {
+          if(!item.transition) return;
+          const handle = forkIndex === 0 ? 'b-2' : 'b-3';
+          createEdge(element.id, item, undefined, handle);
+          forkIndex++;
+        });
+      }
+      currentX += 200;
     }
     else if (element.type === "external") {
         nodes.push({ id: element.id, type: "molicNode", position: { x: currentX, y: currentY + 50 }, data: { label: element.id, nodeType: 'externalNode' } });
         currentX += 128;
     }
     else if (element.type === "terminal") { 
-        const type = element.kind === "end" ? "endNode" : "completionNode";
+        const type = element.kind === "end" ? "endNode" : element.kind === "break" ? "breakNode" : "completionNode";
         nodes.push({ id: element.id, type: "molicNode", position: { x: currentX, y: currentY }, data: { label: element.id, nodeType: type } });
         currentX += 150;
     }

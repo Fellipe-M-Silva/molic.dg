@@ -29,12 +29,40 @@ const HandleSet = ({ isScene }: { isScene: boolean }) => {
   );
 };
 
+const ForkHandleSet = () => {
+  return (
+    <>
+      <BiDirectionalHandle id="t-1" position={Position.Top} style={{ left: '50%' }} />
+      <BiDirectionalHandle id="b-2" position={Position.Bottom} style={{ left: '30%' }} />
+      <BiDirectionalHandle id="b-3" position={Position.Bottom} style={{ left: '70%' }} />
+    </>
+  );
+};
+
 const renderContent = (items: ContentNode[]) => {
   return items.map((item, index) => {
-    if (item.type === 'topic') return <div key={index} className='molic-topic'>{item.text}</div>;
-    if (item.type === 'let') return <div key={index} className="molic-let"><strong>let</strong> {`{ ${item.variable}: ${item.value} }`}</div>;
-    if (item.type === 'why') return <div key={index} className="molic-why"><strong>Why:</strong> {item.text}</div>;
-    if (item.type === 'utterance') return null;
+    if (item.type === 'topic') return null; // Topic é apenas header, não renderizar aqui
+    if (item.type === 'subtopic') return <div key={index} className='molic-subtopic'>{(item as any).text}</div>;
+    if (item.type === 'let') return <div key={index} className="molic-let"><strong>let:</strong> {item.value}</div>;
+    if (item.type === 'effect') return <div key={index} className="molic-effect"><strong>effect:</strong> {(item as any).value}</div>;
+    if (item.type === 'why') return <div key={index} className="molic-why"><strong>why:</strong> {(item as any).value}</div>;
+    
+    // Renderiza apenas utterances sem transição (internas)
+    if (item.type === 'utterance') {
+      const utt = item as any;
+      if (utt.transition) return null; // Ignore utterances com transição (vão gerar arestas)
+      
+      const prefix = utt.speaker === 'user' ? 'u' : utt.speaker === 'mixed' ? 'd+u' : 'd';
+      const condText = utt.condition ? ` [if: ${utt.condition}]` : '';
+      const whenText = utt.when ? ` when: ${utt.when}` : '';
+      return (
+        <div key={index} className="molic-utterance">
+          <div className="molic-utterance-main">
+            <strong>{prefix}:</strong> {utt.text}{condText}{whenText}
+          </div>
+        </div>
+      );
+    }
 
     if (item.type === 'flow') {
       const type = item.variant.toUpperCase();
@@ -63,7 +91,7 @@ const renderContent = (items: ContentNode[]) => {
 export const MolicNode = memo(({ data, selected }: NodeProps) => {
   const visibleContent = useMemo(() => {
     if (!data.rawContent) return [];
-    return data.rawContent.filter((item: ContentNode) => item.type !== 'topic' && item.type !== 'utterance');
+    return data.rawContent.filter((item: ContentNode) => item.type !== 'topic');
   }, [data.rawContent]);
 
   const type = data.nodeType || 'scene';
@@ -79,6 +107,7 @@ export const MolicNode = memo(({ data, selected }: NodeProps) => {
     type === 'startNode' ? 'terminal start' : '',
     type === 'endNode' ? 'terminal end' : '',
     type === 'completionNode' ? 'terminal completion' : '',
+    type === 'breakNode' ? 'break' : '',
     type === 'forkNode' ? 'fork' : '',
     type === 'processNode' ? 'process' : '',
     type === 'externalNode' ? 'external' : '',
@@ -99,14 +128,15 @@ export const MolicNode = memo(({ data, selected }: NodeProps) => {
       <div className={classes}>
         {type === 'endNode' && <div className="terminal-double-circle"><div className="inner" /></div>}
         {type === 'completionNode' && <div className="completion-line" />}
+        {type === 'breakNode' && <div className="break-box"><div className="break-line" /></div>}
         {type === 'processNode' && <div className="process-box" />}
-        {type === 'externalNode' && <div className="external-shape"><span className="external-label">{data.label}</span></div>}
+        {type === 'forkNode' && <div className="fork-bar" />}
         {type === 'contactNode' && <><div className="contact-icon">user</div><span className="contact-label">{data.label}</span></>}
         
-        {['startNode', 'forkNode'].includes(type) && (
+        {['startNode'].includes(type) && (
            <div style={{ textAlign: 'center', padding: '4px', fontWeight: 'bold' }}>{data.label}</div>
         )}
-        <HandleSet isScene={false} />
+        {type === 'forkNode' ? <ForkHandleSet /> : <HandleSet isScene={false} />}
       </div>
     );
   }
@@ -114,7 +144,7 @@ export const MolicNode = memo(({ data, selected }: NodeProps) => {
   const hasBody = visibleContent.length > 0;
   return (
     <div className={classes}>
-      <div className="molic-node-header">{data.label}</div>
+      <div className={`molic-node-header ${!hasBody ? 'empty' : ''}`}>{data.label}</div>
       {hasBody && <div className="molic-node-body">{renderContent(data.rawContent)}</div>}
       <HandleSet isScene={true} />
     </div>

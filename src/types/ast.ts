@@ -18,6 +18,7 @@ export type ElementNode =
 export type ContentNode =
 	| TopicNode
 	| LetNode
+	| EffectNode
 	| WhyNode
 	| DialogNode
 	| FlowControlNode
@@ -93,13 +94,17 @@ export interface TopicNode extends ASTNode {
 
 export interface LetNode extends ASTNode {
 	type: "let";
-	variable: string;
+	value: string;
+}
+
+export interface EffectNode extends ASTNode {
+	type: "effect";
 	value: string;
 }
 
 export interface WhyNode extends ASTNode {
 	type: "why";
-	text: string;
+	value: string;
 }
 
 export interface DialogNode extends ASTNode {

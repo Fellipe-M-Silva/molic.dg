@@ -6,15 +6,18 @@ export const grammarSource = `
 Molic {
   Diagram = Element*
 
-  Element = Scene | Global | Start | Terminal | External
+	Element = Scene | Global | Start | Terminal | External | Contact | Process | Fork
 
   Scene = "main"? "scene" identifier "{" SceneContent* "}"
   Global = "global" identifier "{" SceneContent* "}"
   Start = "start" identifier "{" SceneContent* "}"
   Terminal = ("end" | "break") identifier
   External = "external" identifier
+	Contact = "contact" identifier string "{" UtteranceWithTransition* "}"
+	Process = "process" identifier "{" UtteranceWithTransition* "}"
+	Fork = "fork" identifier "{" UtteranceWithTransition* "}"
 
-  SceneContent = Topic | SubTopic | FlowControl | UtteranceWithTransition
+	SceneContent = Topic | FlowControl | UtteranceWithTransition | LetClause | EffectClause | WhyClause
 
   Topic = "topic:" string
   SubTopic = "subtopic:" string
@@ -22,25 +25,29 @@ Molic {
   FlowControl = FlowType Condition? "{" FlowContent* "}"
   FlowType = "and" | "seq" | "or" | "xor"
   
-  FlowContent = SubTopic | UtteranceWithTransition
+	FlowContent = SubTopic | UtteranceWithTransition | FlowControl | LetClause | EffectClause | WhyClause
 
-  UtteranceWithTransition = Utterance Transition?
+	UtteranceWithTransition = Utterance InlineMeta+ Transition --withMeta
+	                       | Utterance Transition? --plain
 
   Utterance = SystemUtterance | UserUtterance | MixedUtterance | AnonymousUtterance
 
-  SystemUtterance = "d:" string Trigger? LetClause? EffectClause?
-  UserUtterance = "u:" string Trigger? LetClause? EffectClause?
-  MixedUtterance = "du:" string Trigger? LetClause? EffectClause?
-  AnonymousUtterance = dqString Trigger? LetClause? EffectClause?
+	SystemUtterance = "d:" string Trigger? EffectClause?
+	UserUtterance = "u:" string Trigger? EffectClause?
+	MixedUtterance = "du:" string Trigger? EffectClause?
+	AnonymousUtterance = "anon:" string Trigger? EffectClause?
 
   Trigger = Condition | When
   Condition = "if" string
   When = "when" string
   
-  LetClause = "let" string
-  EffectClause = "effect" string
+	LetClause = "let:" string
+	EffectClause = "effect" string
+	WhyClause = "why:" string
 
-  Transition = Arrow identifier
+	InlineMeta = LetClause | EffectClause | WhyClause
+
+	Transition = Arrow identifier
   Arrow = "->" | "..>"
 
   string = dqString | sqString
@@ -132,6 +139,48 @@ semantics.addOperation("toAST", {
 		};
 	},
 
+	Contact(
+		_contact: any,
+		id: any,
+		name: any,
+		_open: any,
+		contents: any,
+		_close: any,
+	) {
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		return {
+			type: "contact",
+			id: id.sourceString,
+			name: name.toAST(),
+			content: contentNodes,
+			flows: [],
+		};
+	},
+
+	Process(_process: any, id: any, _open: any, contents: any, _close: any) {
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		return {
+			type: "process",
+			id: id.sourceString,
+			content: contentNodes,
+		};
+	},
+
+	Fork(_fork: any, id: any, _open: any, contents: any, _close: any) {
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		return {
+			type: "fork",
+			id: id.sourceString,
+			content: contentNodes,
+		};
+	},
+
 	Topic(_colon: any, text: any) {
 		return { type: "topic", text: text.toAST() };
 	},
@@ -163,19 +212,9 @@ semantics.addOperation("toAST", {
 		};
 	},
 
-	SystemUtterance(
-		_d: any,
-		text: any,
-		trigger: any,
-		letClause: any,
-		effectClause: any,
-	) {
+	SystemUtterance(_d: any, text: any, trigger: any, effectClause: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const letVal =
-			letClause.numChildren > 0
-				? letClause.children[0].toAST()
-				: undefined;
 		const eff =
 			effectClause.numChildren > 0
 				? effectClause.children[0].toAST()
@@ -187,24 +226,13 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			let: letVal?.value,
 			effect: eff?.value,
 		};
 	},
 
-	UserUtterance(
-		_u: any,
-		text: any,
-		trigger: any,
-		letClause: any,
-		effectClause: any,
-	) {
+	UserUtterance(_u: any, text: any, trigger: any, effectClause: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const letVal =
-			letClause.numChildren > 0
-				? letClause.children[0].toAST()
-				: undefined;
 		const eff =
 			effectClause.numChildren > 0
 				? effectClause.children[0].toAST()
@@ -216,24 +244,13 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			let: letVal?.value,
 			effect: eff?.value,
 		};
 	},
 
-	MixedUtterance(
-		_du: any,
-		text: any,
-		trigger: any,
-		letClause: any,
-		effectClause: any,
-	) {
+	MixedUtterance(_du: any, text: any, trigger: any, effectClause: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const letVal =
-			letClause.numChildren > 0
-				? letClause.children[0].toAST()
-				: undefined;
 		const eff =
 			effectClause.numChildren > 0
 				? effectClause.children[0].toAST()
@@ -245,23 +262,13 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			let: letVal?.value,
 			effect: eff?.value,
 		};
 	},
 
-	AnonymousUtterance(
-		text: any,
-		trigger: any,
-		letClause: any,
-		effectClause: any,
-	) {
+	AnonymousUtterance(_anon: any, text: any, trigger: any, effectClause: any) {
 		const trig =
 			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
-		const letVal =
-			letClause.numChildren > 0
-				? letClause.children[0].toAST()
-				: undefined;
 		const eff =
 			effectClause.numChildren > 0
 				? effectClause.children[0].toAST()
@@ -273,12 +280,32 @@ semantics.addOperation("toAST", {
 			text: text.toAST(),
 			condition: trig?.condition,
 			when: trig?.when,
-			let: letVal?.value,
 			effect: eff?.value,
 		};
 	},
 
-	UtteranceWithTransition(utterance: any, transition: any) {
+	UtteranceWithTransition_withMeta(
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = transition.toAST();
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	UtteranceWithTransition_plain(utterance: any, transition: any) {
 		const utt = utterance.toAST();
 		const trans =
 			transition.numChildren > 0
@@ -304,6 +331,10 @@ semantics.addOperation("toAST", {
 
 	EffectClause(_effect: any, text: any) {
 		return { type: "effect", value: text.toAST() };
+	},
+
+	WhyClause(_why: any, text: any) {
+		return { type: "why", value: text.toAST() };
 	},
 
 	Transition(arrow: any, id: any) {

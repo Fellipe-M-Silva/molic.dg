@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
@@ -20,20 +20,16 @@ import './MolicEdge.css';
 import './MolicNode.css'; 
 import './Diagram.css';
 
-const nodeTypes = {
-  molicNode: MolicNode,
-};
-
-const edgeTypes = {
-  simultaneous: SimultaneousEdge,
-  molic: MolicEdge,
-};
-
 interface DiagramProps {
   code: string;
 }
 
 export const Diagram: React.FC<DiagramProps> = ({ code }) => {
+  const nodeTypes = useMemo(() => ({ molicNode: MolicNode }), []);
+  const edgeTypes = useMemo(
+    () => ({ simultaneous: SimultaneousEdge, molic: MolicEdge }),
+    [],
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isConnecting, setIsConnecting] = useState(false);

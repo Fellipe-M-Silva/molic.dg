@@ -1,19 +1,55 @@
-scene Welcome {
-  topic: "Welcome to the store"
-  d: "Hello, welcome!" -> Purchase
+start Welcome {
+  u: "Qual é o seu nome?" -> Login
 }
 
-scene Purchase {
-  topic: "Help customer select product"
-  subtopic: "Product selection"
-  and if "has money" {
-    u: "What would you like?" -> Checkout
+scene Login {
+  topic: "Fazer login"
+  
+  and {
+    subtopic: "Seleção de método"
+    u: "Qual método prefere?" if "não autenticado"
+    
+    or {
+      u: "Email" -> EmailAuth why: "Autentica por email"
+      u: "Senha" -> PasswordAuth why: "Autentica por senha"
+      
+      xor {
+        u: "Biometria" -> BioAuth why: "Autentica biometricamente"
+      }
+    }
   }
+  
+  u: "Login bem-sucedido" -> Dashboard why: "Acesso concedido"
 }
 
-scene Checkout {
-  topic: "Final purchase"
-  u: "Please proceed to payment" ..> PaymentSystem
+scene EmailAuth {
+  topic: "Autenticação por email"
+  d: "Digite seu email" why: "Pedindo credencial do usuário"
+  u: "Email informado" -> Verification
 }
 
-external PaymentSystem
+scene PasswordAuth {
+  topic: "Autenticação por senha"
+  d: "Digite sua senha"
+  u: "Senha informada" -> Verification
+}
+
+scene BioAuth {
+  topic: "Autenticação biométrica"
+  d: "Posicione seu dedo"
+  anon: "Aguardando leitura..." -> Verification
+}
+
+scene Verification {
+  topic: "Verificação"
+  d: "Por favor aguarde..." -> Dashboard
+}
+
+scene Dashboard {
+  topic: "Painel principal"
+}
+
+end fim
+
+
+

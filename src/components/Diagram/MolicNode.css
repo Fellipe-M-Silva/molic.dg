@@ -1,165 +1,285 @@
 /* --- Nó Básico --- */
 .molic-node {
-  background: var(--bg-base, #fff);
-  border: 1px solid var(--border-base, #ccc);
-  border-radius: 8px;
-  min-width: 180px; /* Largura mínima para não colapsar */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  font-size: 12px;
-  text-align: left;
-  position: relative;
-  transition: all 0.2s ease;
+	background: var(--bg-base, #fff);
+	border: 1px solid var(--border-base, #ccc);
+	border-radius: 8px;
+	min-width: 180px; /* Largura mínima para não colapsar */
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+	font-size: 12px;
+	text-align: left;
+	position: relative;
+	transition: all 0.2s ease;
 }
 
 .molic-node.selected {
-  border-color: var(--primary, #007bff);
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+	border-color: var(--primary, #007bff);
+	box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
 
 /* --- Global --- */
 .molic-node.global {
-  background-color: #f0f2f5; /* Cinza claro */
-  border: 2px dashed #bdc3c7;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80px;
+	background-color: #f0f2f5; /* Cinza claro */
+	border: 2px dashed #bdc3c7;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
 }
 .global-label {
-  font-weight: bold;
-  color: #7f8c8d;
-  font-style: italic;
+	font-weight: bold;
+	color: #7f8c8d;
+	font-style: italic;
 }
 
 /* --- Scene Header/Body --- */
 .molic-node-header {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border-muted, #eee);
-  font-weight: 600;
-  text-align: center;
-  background-color: #f8f9fa;
-  border-radius: 8px 8px 0 0;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--border-muted, #eee);
+	font-weight: 600;
+	text-align: center;
+	background-color: #f8f9fa;
+	border-radius: 8px 8px 0 0;
 }
 
 .molic-node-body {
-  padding: 8px;
+	padding: 8px;
+}
+
+.molic-node-header.empty {
+	padding: 0;
+	border-bottom: none;
+	background-color: transparent;
+	border-radius: 8px;
+	height: 48px;
+	padding: 16px;
+}
+
+.molic-subtopic {
+	padding: 6px 8px;
+	font-weight: 600;
+	color: #555;
+	background: #f0f0f0;
+	border-left: 3px solid #666;
+	margin: 6px 0 4px 0;
+	font-size: 11px;
 }
 
 /* --- Fluxos --- */
 .molic-flow {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 6px;
-  margin-bottom: 8px;
-  position: relative;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 6px;
+	margin-bottom: 8px;
+	position: relative;
 }
 
 /* AND Default (Invisível) */
 .molic-flow.default-layer {
-  border: none;
-  padding: 0;
-  margin: 0;
+	border: none;
+	padding: 0;
+	margin: 0;
 }
 
 /* Cores dos Fluxos */
-.molic-flow.seq { border-left: 3px solid #8c8c8c; }
-.molic-flow.xor { border-left: 3px solid #69c0ff; }
-.molic-flow.or  { border-left: 3px solid #95de64; }
-.molic-flow.and:not(.default-layer) { border-left: 3px solid #ffadd2; }
+.molic-flow.seq {
+	border-left: 3px solid #8c8c8c;
+}
+.molic-flow.xor {
+	border-left: 3px solid #69c0ff;
+}
+.molic-flow.or {
+	border-left: 3px solid #95de64;
+}
+.molic-flow.and:not(.default-layer) {
+	border-left: 3px solid #ffadd2;
+}
 
 .molic-flow-label {
-  font-size: 10px;
-  color: #666;
-  margin-bottom: 4px;
-  display: flex;
-  justify-content: space-between;
+	font-size: 10px;
+	color: #666;
+	margin-bottom: 4px;
+	display: flex;
+	justify-content: space-between;
 }
 
 /* --- Terminais (Start/End) --- */
 .molic-node.terminal {
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  min-width: auto;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	min-width: auto;
 }
 
 .molic-node.terminal.start {
-  width: 40px;
-  height: 40px;
-  background-color: #000;
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	width: 32px;
+	height: 32px;
+	background-color: var(--primary);
+	border-radius: 50%;
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .molic-node.terminal.end {
-  width: 40px;
-  height: 40px;
+	width: 32px;
+	height: 32px;
 }
 .terminal-double-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid #000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 .terminal-double-circle .inner {
-  width: 20px;
-  height: 20px;
-  background-color: #000;
-  border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	background-color: #000;
+	border-radius: 50%;
 }
 
 /* --- Process --- */
 .molic-node.process {
-  min-width: auto;
-  border: none;
-  background: transparent;
-  box-shadow: none;
+	min-width: auto;
+	border: none;
+	background: transparent;
+	box-shadow: none;
 }
 .process-box {
-  width: 60px;
-  height: 60px;
-  background-color: #000;
-  border-radius: 4px;
+	width: 60px;
+	height: 60px;
+	background-color: var(--text-base);
+	border-radius: 4px;
+}
+
+/* --- Fork --- */
+.molic-node.fork {
+	min-width: auto;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+}
+
+.fork-bar {
+	width: 160px;
+	height: 16px;
+	background-color: var(--text-base);
+	border-radius: 4px;
+}
+
+/* --- Break --- */
+.molic-node.break {
+	min-width: auto;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+}
+
+.break-box {
+	width: 120px;
+	height: 60px;
+	background-color: var(--bg-base);
+	border: 1px solid var(--border-base);
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
+.break-line {
+	width: 80%;
+	height: 2px;
+	background-color: var(--border-base);
 }
 
 /* --- Contact --- */
 .molic-node.contact {
-  border: 2px solid #000;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  min-width: auto;
+	border: 2px solid var(--border-base);
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: #fff;
+	min-width: auto;
 }
 .contact-icon {
-  font-size: 24px;
-  line-height: 1;
+	font-size: 24px;
+	line-height: 1;
 }
 .contact-label {
-  font-size: 9px;
-  font-weight: bold;
+	font-size: 9px;
+	font-weight: bold;
+}
+
+/* --- Utterances --- */
+.molic-utterance {
+	padding: 6px 8px;
+	margin: 4px 0;
+	background: #f9f9f9;
+	border-left: 3px solid #0066cc;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #333;
+}
+
+.molic-utterance strong {
+	color: #0066cc;
+	font-weight: 600;
+}
+
+.molic-utterance-meta {
+	margin-top: 2px;
+	font-size: 10px;
+	color: #666;
+}
+
+.molic-effect {
+	padding: 4px 8px;
+	margin: 4px 0;
+	background: #f0f7ff;
+	border-left: 3px solid #3b82f6;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #333;
+}
+
+.molic-why {
+	padding: 4px 8px;
+	margin: 4px 0;
+	background: #fff7e6;
+	border-left: 3px solid #d48806;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #333;
 }
 
 /* --- External --- */
 .molic-node.external {
-  min-width: auto;
-  border: none;
-  background: transparent;
+	width: 32px;
+	height: 32px;
+	min-width: auto;
+	border: 2px solid var(--text-base);
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: none;
+	position: relative;
 }
-.external-shape {
-  border: 2px solid #000;
-  border-radius: 0 50% 50% 0; /* Forma de D */
-  padding: 8px 16px;
-  background: #fff;
+
+.molic-node.external::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 50%;
+	height: 100%;
+	background: var(--text-base);
+	border-radius: 100% 0 0 100%;
 }
