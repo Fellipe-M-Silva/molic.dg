@@ -1,9 +1,9 @@
 /* --- Nó Básico --- */
 .molic-node {
-	background: var(--bg-base, #fff);
-	border: 1px solid var(--border-base, #ccc);
+	background: var(--bg-base);
+	border: 1px solid var(--border-node);
 	border-radius: 8px;
-	min-width: 180px; /* Largura mínima para não colapsar */
+	min-width: 160px;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 	font-size: 12px;
 	text-align: left;
@@ -16,20 +16,21 @@
 	box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
 
+/* --- Cena Principal --- */
+.molic-node.main {
+	border: 3px solid var(--border-node);
+}
+
 /* --- Global --- */
 .molic-node.global {
 	background-color: var(--bg-muted);
-	border: 2px solid var(--border-base);
+	border: 2px solid var(--border-node);
 	border-radius: 12px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
-}
-.global-label {
-	font-weight: bold;
-	color: var(--text-base);
-	font-style: italic;
+	width: 160px;
+	height: 48px;
 }
 
 /* --- Scene Header/Body --- */
@@ -38,7 +39,6 @@
 	border-bottom: 1px solid var(--border-muted);
 	font-weight: 600;
 	text-align: center;
-	background-color: var(--bg-alt);
 	border-radius: 8px 8px 0 0;
 }
 
@@ -64,7 +64,7 @@
 
 /* --- Fluxos --- */
 .molic-flow {
-	border: 1px solid var(--border-base);
+	border: 1px solid var(--border-muted);
 	border-radius: 4px;
 	padding: 6px;
 	position: relative;
@@ -161,8 +161,8 @@
 	box-shadow: none;
 }
 .process-box {
-	width: 60px;
-	height: 60px;
+	width: 64px;
+	height: 64px;
 	background-color: var(--text-base);
 	border-radius: 4px;
 }
@@ -205,12 +205,12 @@
 .break-line {
 	width: 80%;
 	height: 2px;
-	background-color: var(--border-base);
+	background-color: var(--text-base);
 }
 
 /* --- Contact --- */
 .molic-node.contact {
-	border: 2px solid var(--border-base);
+	border: 2px solid var(--border-node);
 	border-radius: 50%;
 	width: 60px;
 	height: 60px;
@@ -218,7 +218,7 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	background: #fff;
+	background: var(--bg-base);
 	min-width: auto;
 }
 .contact-icon {
@@ -232,7 +232,7 @@
 
 /* --- Utterances --- */
 .molic-utterance {
-	padding: 0 16px;
+	padding: 0 0 0 16px;
 	margin: 4px 0;
 	font-size: 11px;
 	line-height: 1.4;
@@ -247,7 +247,22 @@
 .molic-utterance-meta {
 	margin-top: 2px;
 	font-size: 10px;
-	color: #666;
+	color: var(--text-muted);
+}
+
+molic-utterance-cond {
+	margin-left: auto;
+	font-size: 10px;
+	color: var(--text-muted);
+}
+
+.molic-let {
+	padding: 2px 4px;
+	margin: 4px 0 4px 12px;
+	background: var(--bg-alt);
+	font-family: monospace;
+	font-size: 12px;
+	line-height: 1.4;
 }
 
 .molic-effect {
@@ -257,7 +272,7 @@
 	border-left: 3px solid var(--text-base);
 	font-size: 11px;
 	line-height: 1.4;
-	color: #333;
+	color: var(--text-muted);
 }
 
 .molic-why {
@@ -267,7 +282,7 @@
 	border-left: 3px solid var(--text-base);
 	font-size: 11px;
 	line-height: 1.4;
-	color: #333;
+	color: var(--text-muted);
 }
 
 /* --- External --- */
@@ -277,7 +292,7 @@
 	min-width: auto;
 	border: 2px solid var(--text-base);
 	border-radius: 50%;
-	background: #fff;
+	background: var(--bg-base);
 	box-shadow: none;
 	position: relative;
 }

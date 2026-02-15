@@ -21,6 +21,7 @@
 	--bg-base: var(--neutral-0);
 	--bg-alt: var(--neutral-100);
 	--bg-muted: var(--neutral-300);
+	--bg-hover: var(--neutral-200);
 	--bg-canvas: var(--neutral-100);
 
 	/* TEXTOS */
@@ -32,6 +33,9 @@
 	--border-base: var(--neutral-500);
 	--border-muted: var(--neutral-300);
 	--border-alt: var(--neutral-300);
+	--border-node: var(--neutral-800);
+	--border-edge: var(--neutral-800);
+	--border-edge-repair: var(--neutral-500);
 
 	/* INTERAÇÃO */
 	--primary: var(--neutral-900);
@@ -47,6 +51,7 @@
 	--bg-base: var(--neutral-900);
 	--bg-alt: var(--neutral-950);
 	--bg-muted: var(--neutral-700);
+	--bg-hover: var(--neutral-800);
 	--bg-canvas: var(--neutral-950);
 
 	/* TEXTOS */
@@ -58,6 +63,9 @@
 	--border-base: var(--neutral-600);
 	--border-muted: var(--neutral-800);
 	--border-alt: var(--neutral-900);
+	--border-node: var(--neutral-200);
+	--border-edge: var(--neutral-800);
+	--border-edge-repair: var(--neutral-500);
 
 	/* INTERAÇÃO */
 	--primary: var(--neutral-100);
@@ -117,13 +125,93 @@ header h1 {
 	display: flex;
 	flex: 1;
 	height: calc(100vh - var(--header-height));
+	position: relative;
 }
 
 .editor-pane {
-	width: 40%;
 	border-right: 1px solid var(--border-muted);
 	background: var(--bg-base);
+	display: flex;
+	flex-direction: column;
+	transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	user-select: none;
 }
+
+.editor-pane.hidden {
+	width: 0 !important;
+	overflow: hidden;
+	border-right: none;
+	pointer-events: none;
+}
+
+/* Handle de Resize */
+.resize-handle {
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 4px;
+	height: 100%;
+	background: transparent;
+	cursor: col-resize;
+	transition: background-color 0.2s ease;
+	z-index: 100;
+}
+
+.resize-handle:hover {
+	background: var(--primary-brand);
+}
+
+/* Botão de Toggle - Ocultar */
+.editor-toggle-btn.hide {
+	position: absolute;
+	right: -32px;
+	top: 16px;
+	transform: translateY(0);
+	width: 32px;
+	height: 48px;
+	border: 1px solid var(--border-muted);
+	background: var(--bg-base);
+	border-radius: 0 6px 6px 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-base);
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	z-index: 50;
+}
+
+.editor-toggle-btn.hide:hover {
+	background: var(--bg-alt);
+	border-color: var(--border-muted);
+}
+
+/* Botão de Toggle - Mostrar (flutuante) */
+.editor-toggle-btn.show {
+	position: fixed;
+	left: 16px;
+	top: 64px;
+	width: 40px;
+	height: 40px;
+	border: 1px solid var(--border-muted);
+	background: var(--bg-base);
+	border-radius: 6px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-base);
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	z-index: 200;
+	opacity: 1;
+	visibility: visible;
+}
+
+.editor-toggle-btn.show:hover {
+	background: var(--bg-alt);
+	border-color: var(--border-muted);
+}
+
 
 .diagram-pane {
 	flex: 1;

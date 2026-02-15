@@ -34,7 +34,7 @@ export const molicLanguage: languages.IMonarchLanguage = {
 	nodeTypes: ["scene", "global", "fork", "process", "external", "contact"],
 
 	// Keywords estruturais
-	keywords: ["start", "end", "break", "main"],
+	keywords: ["start", "end", "break", "main", "preferred"],
 
 	// Fluxo de controle
 	flowKeywords: ["seq", "xor", "or", "and", "dialog", "if"],
@@ -55,11 +55,11 @@ export const molicLanguage: languages.IMonarchLanguage = {
 			// Tipos de nó (scene, global, fork, process, external, contact)
 			[
 				/\b(scene|global|fork|process|external|contact)\b/i,
-				"keyword.struct",
+				{ token: "keyword.struct", next: "@afterNodeType" },
 			],
 
 			// Keywords estruturais
-			[/\b(start|end|break|main)\b/i, "keyword"],
+			[/\b(start|end|break|main|preferred)\b/i, "keyword"],
 
 			// Fluxo de controle (seq, xor, or, and, dialog) - NÃO include 'if' aqui
 			[/\b(seq|xor|or|and|dialog)\b/i, "keyword.flow"],
@@ -70,8 +70,8 @@ export const molicLanguage: languages.IMonarchLanguage = {
 			// Transições (=>, -> e ..>)
 			[/(=>|->|\.\.>)/, "operator.arrow"],
 
-			// Identificadores
-			[/[a-z_][a-z0-9_]*/i, "identifier"],
+			// Identificadores (garante que S1 fique inteiro)
+			[/[a-z][a-z0-9_]*/i, "identifier"],
 
 			// Números
 			[/\b\d+(\.\d+)?\b/, "number"],
@@ -130,6 +130,12 @@ export const molicLanguage: languages.IMonarchLanguage = {
 			[/[ \t\r\n]+/, "white"],
 			[/\/\*/, "comment", "@comment"],
 			[/\/\/.*$/, "comment"],
+		],
+
+		afterNodeType: [
+			[/[ \t\r\n]+/, "white"],
+			[/[a-z][a-z0-9_]*/i, { token: "identifier", next: "@pop" }],
+			[/./, { token: "", next: "@pop" }],
 		],
 	},
 };

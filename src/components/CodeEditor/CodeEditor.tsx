@@ -85,6 +85,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
         
         // Identificadores (nomes de nós, variáveis)
         { token: 'identifier', foreground: 'D4D4D4' },
+
+        // Numeros (mantem o mesmo tom dos identificadores)
+        { token: 'number', foreground: 'D4D4D4' },
       ],
       colors: {
         'editor.background': '#0a0a0a',
@@ -127,6 +130,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
         
         // Identificadores
         { token: 'identifier', foreground: '000000' },
+
+        // Numeros
+        { token: 'number', foreground: '000000' },
       ],
       colors: {
         'editor.background': '#ffffff', 

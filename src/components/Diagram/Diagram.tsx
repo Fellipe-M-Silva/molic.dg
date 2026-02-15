@@ -19,6 +19,8 @@ import { transformer } from '../../core/transformer';
 import { parseMolic } from '../../core/parser';
 import { useLayoutPersistence } from '../../hooks/useLayoutPersistence';
 import { useUndoRedo } from '../../hooks/useUndoRedo';
+import { ReconnectionProvider } from '../../context/ReconnectionContext';
+import { useReconnectionContext } from '../../hooks/useReconnectionContext';
 
 import './MolicEdge.css';
 import './MolicNode.css'; 
@@ -29,7 +31,7 @@ interface DiagramProps {
   code: string;
 }
 
-export const Diagram: React.FC<DiagramProps> = ({ code }) => {
+const DiagramContent: React.FC<any> = ({ code }) => {
   const nodeTypes = useMemo(() => ({ molicNode: MolicNode }), []);
   const edgeTypes = useMemo(
     () => ({ simultaneous: SimultaneousEdge, molic: MolicEdge }),
@@ -49,16 +51,24 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
   } = useUndoRedo();
   
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const { saveLayout, applySavedLayout } = useLayoutPersistence();
   const edgeReconnectSuccessful = useRef(true);
+  const edgeBackupRef = useRef<Edge[]>([]);
+  const { setReconnecting, resetReconnecting } = useReconnectionContext();
 
   const onConnectStart: OnConnectStart = useCallback(() => setIsConnecting(true), []);
   const onConnectEnd: OnConnectEnd = useCallback(() => setIsConnecting(false), []);
   
   // Handler para reconexão de edges
-  const onReconnectStart = useCallback(() => {
+  const onReconnectStart = useCallback((event: any, edge: Edge) => {
     edgeReconnectSuccessful.current = false;
-  }, []);
+    setIsReconnecting(true);
+    // Guardar backup de todas as edges para restaurar se falhar
+    edgeBackupRef.current = edges.map(e => ({ ...e }));
+    // Marcar que está reconectando (mostrar handles dos nós envolvidos)
+    setReconnecting(edge);
+  }, [edges, setReconnecting]);
 
   const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
@@ -105,11 +115,16 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
   const onReconnectEnd = useCallback(
     (_: MouseEvent | TouchEvent, edge: Edge) => {
       if (!edgeReconnectSuccessful.current) {
-        setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+        // Se a reconexão falhou, restaurar o backup de edges
+        console.log('[MoLIC] Reconexão cancelada, restaurando edge:', edge.id);
+        setEdges(edgeBackupRef.current);
       }
       edgeReconnectSuccessful.current = true;
+      // Resetar estado de reconexão
+      setIsReconnecting(false);
+      resetReconnecting();
     },
-    [setEdges]
+    [setEdges, resetReconnecting]
   );
   
   // Salvar layout quando nodes ou edges mudam
@@ -203,7 +218,7 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
         minZoom={0.1}
         snapToGrid={true}
         snapGrid={[16, 16]}
-        className={isConnecting ? 'app-connecting' : ''}
+        className={[isConnecting ? 'app-connecting' : '', isReconnecting ? 'app-reconnecting' : ''].filter(Boolean).join(' ')}
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
         style={{ backgroundColor: 'var(--bg-canvas)' }}
@@ -226,5 +241,13 @@ export const Diagram: React.FC<DiagramProps> = ({ code }) => {
         </svg>
       </ReactFlow>
     </div>
+  );
+};
+
+export const Diagram: React.FC<DiagramProps> = ({ code }) => {
+  return (
+    <ReconnectionProvider>
+      <DiagramContent code={code} />
+    </ReconnectionProvider>
   );
 };

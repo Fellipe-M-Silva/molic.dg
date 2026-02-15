@@ -27,7 +27,9 @@ Molic {
   
 	FlowContent = SubTopic | UtteranceWithTransition | FlowControl | LetClause | EffectClause | WhyClause
 
-	UtteranceWithTransition = Utterance InlineMeta+ Transition --withMeta
+	UtteranceWithTransition = Preferred Utterance InlineMeta+ Transition --preferredWithMeta
+	                       | Preferred Utterance Transition --preferredPlain
+	                       | Utterance InlineMeta+ Transition --withMeta
 	                       | Utterance Transition? --plain
 
   Utterance = SystemUtterance | UserUtterance | MixedUtterance | AnonymousUtterance
@@ -46,6 +48,8 @@ Molic {
 	WhyClause = "why:" string
 
 	InlineMeta = LetClause | EffectClause | WhyClause
+
+	Preferred = "preferred"
 
 	Transition = Arrow identifier
   Arrow = "=>" | "->" | "..>"
@@ -285,12 +289,47 @@ semantics.addOperation("toAST", {
 		};
 	},
 
+	UtteranceWithTransition_preferredWithMeta(
+		_preferred: any,
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
 	UtteranceWithTransition_plain(utterance: any, transition: any) {
 		const utt = utterance.toAST();
 		const trans =
 			transition.numChildren > 0
 				? transition.children[0].toAST()
 				: undefined;
+		return {
+			...utt,
+			transition: trans,
+		};
+	},
+
+	UtteranceWithTransition_preferredPlain(
+		_preferred: any,
+		utterance: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
 		return {
 			...utt,
 			transition: trans,

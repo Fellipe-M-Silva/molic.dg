@@ -28,7 +28,7 @@ export const SimultaneousEdge = ({
         style={{
           ...style,
           strokeWidth: 12,
-          stroke: 'var(--text-base)',
+          stroke: 'var(--border-edge)',
         }}
       />
       

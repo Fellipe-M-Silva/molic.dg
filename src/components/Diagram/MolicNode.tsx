@@ -3,6 +3,7 @@ import { memo, useMemo } from 'react';
 import { Position, type NodeProps } from 'reactflow';
 import { BiDirectionalHandle } from './BiDirectionalHandle';
 import { type ContentNode, type FlowControlNode, type SubtopicNode } from '../../types/ast';
+import { useReconnectionContext } from '../../hooks/useReconnectionContext';
 import './MolicNode.css'; 
 
 const POSITIONS = {
@@ -54,12 +55,12 @@ const renderContent = (items: ContentNode[]) => {
       if (utt.speaker === 'anonymous') return null; // Ignore utterances anônimas (sem conteúdo)
       
       const prefix = utt.speaker === 'user' ? 'u' : utt.speaker === 'mixed' ? 'd+u' : 'd';
-      const condText = utt.condition ? ` [if: ${utt.condition}]` : '';
+      const condText = utt.condition ? ` (if: ${utt.condition})` : '';
       const whenText = utt.when ? ` when: ${utt.when}` : '';
       return (
         <div key={index} className="molic-utterance">
           <div className="molic-utterance-main">
-            <strong>{prefix}:</strong> {utt.text}{condText}{whenText}
+            <strong>{prefix}:</strong> {utt.text}<span className='molic-utterance-cond'>{condText}{whenText}</span>
           </div>
         </div>
       );
@@ -89,7 +90,10 @@ const renderContent = (items: ContentNode[]) => {
   });
 };
 
-export const MolicNode = memo(({ data, selected }: NodeProps) => {
+export const MolicNode = memo(({ data, selected, id }: NodeProps) => {
+  const { isReconnecting, sourceNodeId, targetNodeId } = useReconnectionContext();
+  const isInvolvedInReconnection = isReconnecting && (id === sourceNodeId || id === targetNodeId);
+  
   const visibleContent = useMemo(() => {
     if (!data.rawContent) return [];
     return data.rawContent.filter((item: ContentNode) => {
@@ -121,12 +125,12 @@ export const MolicNode = memo(({ data, selected }: NodeProps) => {
     type === 'processNode' ? 'process' : '',
     type === 'externalNode' ? 'external' : '',
     type === 'contactNode' ? 'contact' : '',
+    isInvolvedInReconnection ? 'reconnecting' : '',
   ].filter(Boolean).join(' ');
 
   if (isGlobal) {
     return (
-      <div className={classes} style={{ minHeight: '80px', minWidth: '150px' }}>
-        <div className="global-label">Global Context</div>
+      <div className={classes} style={{ minHeight: '48px', minWidth: '150px' }}>
         <HandleSet isScene={true} />
       </div>
     );
