@@ -8,12 +8,17 @@
 	font-size: 12px;
 	text-align: left;
 	position: relative;
-	transition: all 0.2s ease;
+	cursor: grab;
+	transition: cursor 0.2s ease;
+}
+
+.molic-node:active {
+	cursor: grabbing;
 }
 
 .molic-node.selected {
-	border-color: var(--primary, #007bff);
-	box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+	outline: 3px solid var(--primary);
+	outline-offset: 4px;
 }
 
 /* --- Cena Principal --- */
@@ -125,7 +130,7 @@
 .molic-node.terminal.start {
 	width: 32px;
 	height: 32px;
-	background-color: var(--primary);
+	background-color: var(--text-base);
 	border-radius: 50%;
 	color: white;
 	display: flex;

@@ -46,6 +46,20 @@ export const DiagramToolbar: React.FC<DiagramToolbarProps> = ({
     }
   }, [isDropdownOpen]);
 
+  // Monitorar zoom continuamente para sincronizar com scroll e outras mudanças
+  useEffect(() => {
+    const checkZoom = () => {
+      const currentZoom = Math.round(reactFlow.getZoom() * 100);
+      if (currentZoom !== lastZoomRef.current) {
+        lastZoomRef.current = currentZoom;
+        setZoom(currentZoom);
+      }
+    };
+
+    const interval = setInterval(checkZoom, 100);
+    return () => clearInterval(interval);
+  }, [reactFlow]);
+
   // Atualizar estado de zoom quando viewport muda
   const updateZoomDisplay = useCallback(() => {
     const currentZoom = Math.round(reactFlow.getZoom() * 100);
@@ -107,7 +121,7 @@ export const DiagramToolbar: React.FC<DiagramToolbarProps> = ({
   }, [reactFlow, updateZoomDisplay]);
 
   return (
-    <div className="diagram-toolbar">
+    <div className="diagram-toolbar" data-toolbar="true">
       <div className="toolbar-group">
         <button
           className="toolbar-btn"

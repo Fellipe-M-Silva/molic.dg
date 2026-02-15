@@ -16,6 +16,7 @@ export const useUndoRedo = () => {
 	const historyRef = useRef<HistoryState[]>([]);
 	const historyIndexRef = useRef(-1);
 	const isUndoRedoRef = useRef(false);
+	const isDraggingRef = useRef(false);
 	const [canUndo, setCanUndo] = useState(false);
 	const [canRedo, setCanRedo] = useState(false);
 
@@ -24,14 +25,7 @@ export const useUndoRedo = () => {
 		setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
 	}, []);
 
-	// Rastrear mudanças de nodes/edges e adicionar ao histórico
-	useEffect(() => {
-		// Não adicionar ao histórico durante undo/redo
-		if (isUndoRedoRef.current) {
-			isUndoRedoRef.current = false;
-			return;
-		}
-
+	const addToHistory = useCallback(() => {
 		// Remover qualquer histórico após o índice atual (quando faz nova ação após undo)
 		historyRef.current = historyRef.current.slice(
 			0,
@@ -51,13 +45,26 @@ export const useUndoRedo = () => {
 		updateHistoryStates();
 	}, [nodes, edges, updateHistoryStates]);
 
+	// Rastrear mudanças de nodes/edges e adicionar ao histórico
+	useEffect(() => {
+		// Não adicionar ao histórico durante undo/redo ou durante drag
+		if (isUndoRedoRef.current || isDraggingRef.current) {
+			isUndoRedoRef.current = false;
+			return;
+		}
+
+		addToHistory();
+	}, [nodes, edges, addToHistory]);
+
 	const undo = useCallback(() => {
 		if (historyIndexRef.current > 0) {
 			historyIndexRef.current--;
 			const state = historyRef.current[historyIndexRef.current];
 			isUndoRedoRef.current = true;
-			setNodesBase(state.nodes);
-			setEdgesBase(state.edges);
+			setTimeout(() => {
+				setNodesBase(state.nodes);
+				setEdgesBase(state.edges);
+			}, 0);
 			updateHistoryStates();
 		}
 	}, [updateHistoryStates]);
@@ -67,11 +74,21 @@ export const useUndoRedo = () => {
 			historyIndexRef.current++;
 			const state = historyRef.current[historyIndexRef.current];
 			isUndoRedoRef.current = true;
-			setNodesBase(state.nodes);
-			setEdgesBase(state.edges);
+			setTimeout(() => {
+				setNodesBase(state.nodes);
+				setEdgesBase(state.edges);
+			}, 0);
 			updateHistoryStates();
 		}
 	}, [updateHistoryStates]);
+
+	const startDragHistory = useCallback(() => {
+		isDraggingRef.current = true;
+	}, []);
+
+	const endDragHistory = useCallback(() => {
+		isDraggingRef.current = false;
+	}, []);
 
 	return {
 		nodes,
@@ -84,5 +101,7 @@ export const useUndoRedo = () => {
 		redo,
 		canUndo,
 		canRedo,
+		startDragHistory,
+		endDragHistory,
 	};
 };

@@ -4,6 +4,7 @@ import ReactFlow, {
   Background, 
   Controls, 
   ConnectionMode,
+  useReactFlow,
   type OnConnectStart,
   type OnConnectEnd,
   type Edge,
@@ -48,10 +49,23 @@ const DiagramContent: React.FC<any> = ({ code }) => {
     redo,
     canUndo,
     canRedo,
+    startDragHistory,
+    endDragHistory,
   } = useUndoRedo();
   
   const [isConnecting, setIsConnecting] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [isSelectingWithBox, setIsSelectingWithBox] = useState(false);
+  const selectBoxRef = useRef<{ startX: number; startY: number } | null>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  const { getNode } = useReactFlow();
+  
   const { saveLayout, applySavedLayout } = useLayoutPersistence();
   const edgeReconnectSuccessful = useRef(true);
   const edgeBackupRef = useRef<Edge[]>([]);
@@ -199,8 +213,84 @@ const DiagramContent: React.FC<any> = ({ code }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo]);
 
+  // Handlers para seleção múltipla com caixa
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    // Verificar se o clique foi em um elemento da toolbar
+    const target = e.target as HTMLElement;
+    if (target.closest('.react-flow__controls') || target.closest('[data-toolbar="true"]')) {
+      return;
+    }
+
+    // Iniciar seleção por caixa só se clicar diretamente no canvas
+    if (target.closest('.react-flow__pane') || target === canvasWrapperRef.current?.querySelector('.react-flow__pane')) {
+      selectBoxRef.current = { startX: e.clientX, startY: e.clientY };
+      setIsSelectingWithBox(true);
+    }
+  }, []);
+
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!selectBoxRef.current || !isSelectingWithBox) return;
+
+    const { startX, startY } = selectBoxRef.current;
+    const x = Math.min(startX, e.clientX);
+    const y = Math.min(startY, e.clientY);
+    const width = Math.abs(e.clientX - startX);
+    const height = Math.abs(e.clientY - startY);
+
+    setSelectionBox({ x, y, width, height });
+  }, [isSelectingWithBox]);
+
+  const handleCanvasMouseUp = useCallback(() => {
+    if (!selectBoxRef.current || !selectionBox) {
+      setIsSelectingWithBox(false);
+      setSelectionBox(null);
+      selectBoxRef.current = null;
+      return;
+    }
+
+    // Detectar nodes dentro da caixa de seleção
+    const selectedNodeIds = nodes
+      .filter((node) => {
+        if (!node.positionAbsolute) return false;
+
+        const nodeX = node.positionAbsolute.x;
+        const nodeY = node.positionAbsolute.y;
+        const nodeWidth = node.width || 160;
+        const nodeHeight = node.height || 48;
+
+        return (
+          nodeX < selectionBox.x + selectionBox.width &&
+          nodeX + nodeWidth > selectionBox.x &&
+          nodeY < selectionBox.y + selectionBox.height &&
+          nodeY + nodeHeight > selectionBox.y
+        );
+      })
+      .map((node) => node.id);
+
+    // Atualizar nodes selecionados
+    if (selectedNodeIds.length > 0) {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => ({
+          ...node,
+          selected: selectedNodeIds.includes(node.id),
+        }))
+      );
+    }
+
+    setIsSelectingWithBox(false);
+    setSelectionBox(null);
+    selectBoxRef.current = null;
+  }, [nodes, selectionBox, setNodes]);
+
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div 
+      ref={canvasWrapperRef}
+      style={{ width: '100%', height: '100%' }}
+      onMouseDown={handleCanvasMouseDown}
+      onMouseMove={handleCanvasMouseMove}
+      onMouseUp={handleCanvasMouseUp}
+      onMouseLeave={handleCanvasMouseUp}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -211,6 +301,8 @@ const DiagramContent: React.FC<any> = ({ code }) => {
         onReconnect={onReconnect}
         onReconnectStart={onReconnectStart}
         onReconnectEnd={onReconnectEnd}
+        onNodeDragStart={startDragHistory}
+        onNodeDragStop={endDragHistory}
         reconnectRadius={20}
         connectionMode={ConnectionMode.Loose}
         fitView
@@ -231,6 +323,21 @@ const DiagramContent: React.FC<any> = ({ code }) => {
           onUndo={undo}
           onRedo={redo}
         />
+        {selectionBox && (
+          <div
+            style={{
+              position: 'fixed',
+              left: selectionBox.x,
+              top: selectionBox.y,
+              width: selectionBox.width,
+              height: selectionBox.height,
+              border: '2px solid var(--primary)',
+              backgroundColor: 'rgba(0, 122, 255, 0.1)',
+              pointerEvents: 'none',
+              zIndex: 1000,
+            }}
+          />
+        )}
         <svg style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }}>
           <defs>
             <marker id="double-arrowhead" viewBox="0 0 20 10" refX="18" refY="5" markerWidth="10" markerHeight="10" orient="auto">

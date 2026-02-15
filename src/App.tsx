@@ -116,7 +116,7 @@ function AppContent() {
         ) : (
           <span style={{
             fontSize: '0.8rem',
-            color: 'var(--primary)',
+            color: 'var(--text-base)',
             background: 'rgba(0, 255, 0, 0.1)',
             padding: '2px 8px',
             borderRadius: '4px',

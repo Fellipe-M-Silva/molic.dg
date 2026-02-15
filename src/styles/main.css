@@ -12,7 +12,7 @@
 	--neutral-900: oklch(0.2 0 0);
 	--neutral-950: oklch(0.14 0 0);
 
-	--primary-brand: oklch(0.6 0.18 280);
+	--primary-brand: oklch(0.629 0.187 252);
 	--primary-dark: oklch(0.45 0.18 280);
 
 	--header-height: 48px;
@@ -38,8 +38,8 @@
 	--border-edge-repair: var(--neutral-500);
 
 	/* INTERAÇÃO */
-	--primary: var(--neutral-900);
-	--primary-hover: var(--neutral-950);
+	--primary: oklch(0.629 0.187 252);
+	--primary-hover: oklch(0.587 0.193 252);
 
 	--secondary: var(--neutral-200);
 	--secondary-hover: var(--neutral-300);
@@ -61,15 +61,15 @@
 
 	/* BORDAS */
 	--border-base: var(--neutral-600);
-	--border-muted: var(--neutral-800);
-	--border-alt: var(--neutral-900);
+	--border-muted: var(--neutral-600);
+	--border-alt: var(--neutral-600);
 	--border-node: var(--neutral-200);
-	--border-edge: var(--neutral-800);
+	--border-edge: var(--neutral-300);
 	--border-edge-repair: var(--neutral-500);
 
 	/* INTERAÇÃO */
-	--primary: var(--neutral-100);
-	--primary-hover: var(--neutral-50);
+	--primary: oklch(0.682 0.176 252);
+	--primary-hover: oklch(0.849 0.107 252);
 
 	--secondary: var(--neutral-800);
 	--secondary-hover: var(--neutral-700);
@@ -211,7 +211,6 @@ header h1 {
 	background: var(--bg-alt);
 	border-color: var(--border-muted);
 }
-
 
 .diagram-pane {
 	flex: 1;
