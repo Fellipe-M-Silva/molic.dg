@@ -1,15 +1,7 @@
-import React, { createContext } from 'react';
+import React from 'react';
 import type { ReactNode } from 'react';
 import type { Node, Edge } from 'reactflow';
-
-export interface DiagramContextType {
-	nodes: Node[];
-	edges: Edge[];
-}
-
-export const DiagramContext = createContext<DiagramContextType | undefined>(
-	undefined,
-);
+import { DiagramContext } from './DiagramContextValue';
 
 interface DiagramProviderProps {
 	children: ReactNode;
@@ -29,12 +21,3 @@ export const DiagramProvider: React.FC<DiagramProviderProps> = ({
 	);
 };
 
-export const useDiagramContext = () => {
-	const context = React.useContext(DiagramContext);
-	if (!context) {
-		throw new Error(
-			'useDiagramContext deve ser usado dentro de um DiagramProvider',
-		);
-	}
-	return context;
-};

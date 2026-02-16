@@ -5,9 +5,10 @@ interface BiDirectionalHandleProps {
   id: string;
   position: Position;
   style?: React.CSSProperties;
+  isConnectable?: boolean;
 }
 
-export const BiDirectionalHandle = memo(({ id, position, style }: BiDirectionalHandleProps) => {
+export const BiDirectionalHandle = memo(({ id, position, style, isConnectable = true }: BiDirectionalHandleProps) => {
   return (
     <>
       <Handle 
@@ -15,14 +16,14 @@ export const BiDirectionalHandle = memo(({ id, position, style }: BiDirectionalH
         id={id} 
         position={position} 
         style={style} 
-        isConnectable={true} 
+        isConnectable={isConnectable} 
       />
       <Handle 
         type="source" 
         id={id} 
         position={position} 
         style={{ ...style, visibility: 'hidden' }} 
-        isConnectable={true} 
+        isConnectable={isConnectable} 
       /> 
     </>
   );

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ReconnectionContext } from "../context/ReconnectionContext";
+import { ReconnectionContext } from "../context/ReconnectionContextValue";
 import { type ReconnectionContextType } from "../context/ReconnectionContextType";
 
 export const useReconnectionContext = (): ReconnectionContextType => {

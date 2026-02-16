@@ -11,7 +11,7 @@ const POSITIONS = {
   scene: { '1': '10%', '2': '30%', '3': '50%', '4': '70%', '5': '90%' }
 };
 
-const HandleSet = ({ isScene }: { isScene: boolean }) => {
+const HandleSet = ({ isScene, isConnectable }: { isScene: boolean; isConnectable: boolean }) => {
   const posMap = isScene ? POSITIONS.scene : POSITIONS.basic;
   const indices = isScene ? ['1', '2', '3', '4', '5'] : ['1', '2', '3'];
 
@@ -22,20 +22,20 @@ const HandleSet = ({ isScene }: { isScene: boolean }) => {
 
   return (
     <>
-      {indices.map(i => <BiDirectionalHandle key={`t-${i}`} id={`t-${i}`} position={Position.Top} style={getStyle(i, true)} />)}
-      {indices.map(i => <BiDirectionalHandle key={`b-${i}`} id={`b-${i}`} position={Position.Bottom} style={getStyle(i, true)} />)}
-      {indices.map(i => <BiDirectionalHandle key={`l-${i}`} id={`l-${i}`} position={Position.Left} style={getStyle(i, false)} />)}
-      {indices.map(i => <BiDirectionalHandle key={`r-${i}`} id={`r-${i}`} position={Position.Right} style={getStyle(i, false)} />)}
+      {indices.map(i => <BiDirectionalHandle key={`t-${i}`} id={`t-${i}`} position={Position.Top} style={getStyle(i, true)} isConnectable={isConnectable} />)}
+      {indices.map(i => <BiDirectionalHandle key={`b-${i}`} id={`b-${i}`} position={Position.Bottom} style={getStyle(i, true)} isConnectable={isConnectable} />)}
+      {indices.map(i => <BiDirectionalHandle key={`l-${i}`} id={`l-${i}`} position={Position.Left} style={getStyle(i, false)} isConnectable={isConnectable} />)}
+      {indices.map(i => <BiDirectionalHandle key={`r-${i}`} id={`r-${i}`} position={Position.Right} style={getStyle(i, false)} isConnectable={isConnectable} />)}
     </>
   );
 };
 
-const ForkHandleSet = () => {
+const ForkHandleSet = ({ isConnectable }: { isConnectable: boolean }) => {
   return (
     <>
-      <BiDirectionalHandle id="t-1" position={Position.Top} style={{ left: '50%' }} />
-      <BiDirectionalHandle id="b-2" position={Position.Bottom} style={{ left: '30%' }} />
-      <BiDirectionalHandle id="b-3" position={Position.Bottom} style={{ left: '70%' }} />
+      <BiDirectionalHandle id="t-1" position={Position.Top} style={{ left: '50%' }} isConnectable={isConnectable} />
+      <BiDirectionalHandle id="b-2" position={Position.Bottom} style={{ left: '30%' }} isConnectable={isConnectable} />
+      <BiDirectionalHandle id="b-3" position={Position.Bottom} style={{ left: '70%' }} isConnectable={isConnectable} />
     </>
   );
 };
@@ -93,6 +93,7 @@ const renderContent = (items: ContentNode[]) => {
 export const MolicNode = memo(({ data, selected, id }: NodeProps) => {
   const { isReconnecting, sourceNodeId, targetNodeId } = useReconnectionContext();
   const isInvolvedInReconnection = isReconnecting && (id === sourceNodeId || id === targetNodeId);
+  const handlesConnectable = isReconnecting && isInvolvedInReconnection;
   
   const visibleContent = useMemo(() => {
     if (!data.rawContent) return [];
@@ -131,7 +132,7 @@ export const MolicNode = memo(({ data, selected, id }: NodeProps) => {
   if (isGlobal) {
     return (
       <div className={classes} style={{ minHeight: '48px', minWidth: '150px' }}>
-        <HandleSet isScene={true} />
+        <HandleSet isScene={true} isConnectable={handlesConnectable} />
       </div>
     );
   }
@@ -146,7 +147,7 @@ export const MolicNode = memo(({ data, selected, id }: NodeProps) => {
         {type === 'forkNode' && <div className="fork-bar" />}
         {type === 'contactNode' && <><div className="contact-icon">user</div><span className="contact-label">{data.label}</span></>}
         
-        {type === 'forkNode' ? <ForkHandleSet /> : <HandleSet isScene={false} />}
+        {type === 'forkNode' ? <ForkHandleSet isConnectable={handlesConnectable} /> : <HandleSet isScene={false} isConnectable={handlesConnectable} />}
       </div>
     );
   }
@@ -156,7 +157,7 @@ export const MolicNode = memo(({ data, selected, id }: NodeProps) => {
     <div className={classes}>
       <div className={`molic-node-header ${!hasBody ? 'empty' : ''}`}>{data.label}</div>
       {hasBody && <div className="molic-node-body">{renderContent(data.rawContent)}</div>}
-      <HandleSet isScene={true} />
+      <HandleSet isScene={true} isConnectable={handlesConnectable} />
     </div>
   );
 });

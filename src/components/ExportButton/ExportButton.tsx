@@ -1,14 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef, useState, useEffect } from 'react';
 import {
 	DownloadIcon,
 	PrinterIcon,
-	FloppyDiskIcon,
-	CaretDown,
 	UploadIcon,
-	File,
-	FileSvg,
-	FilePng,
-	FilePdf,
+  CaretDownIcon,
+  FileIcon,
+  FileSvgIcon,
+  FilePngIcon,
+  FilePdfIcon,
 } from '@phosphor-icons/react';
 import {
 	exportDiagramAsSVG,
@@ -19,13 +19,15 @@ import {
 	loadMolicProject,
 } from '../../utils/exportSVG';
 import { useToastContext } from '../../hooks/useToast';
+import type { DiagramHandle } from '../Diagram/Diagram';
+import type { Edge, Node as RFNode } from 'reactflow';
 import './ExportButton.css';
 
 interface ExportButtonProps {
-	diagramRef: React.RefObject<HTMLDivElement | null>;
+	diagramRef: React.RefObject<DiagramHandle | null>;
 	code?: string;
-	nodes?: { id: string; position: { x: number; y: number } }[];
-	edges?: { id: string; sourceHandle?: string | null; targetHandle?: string | null }[];
+	nodes?: RFNode[];
+	edges?: Edge[];
 	onLoadMolic?: (project: { code: string; layout: { nodes: { id: string; position: { x: number; y: number } }[]; edges: { id: string; sourceHandle?: string | null; targetHandle?: string | null }[] } }) => void;
 }
 
@@ -38,7 +40,8 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ diagramRef, code = '
 	// Fecha o menu ao clicar fora
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+			const target = event.target;
+			if (menuRef.current && target instanceof Node && !menuRef.current.contains(target)) {
 				setShowMenu(false);
 			}
 		};
@@ -250,7 +253,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ diagramRef, code = '
 				>
 					<DownloadIcon size={18} weight="regular" />
 					<span>Exportar</span>
-					<CaretDown size={14} weight="bold" />
+					<CaretDownIcon size={14} weight="bold" />
 				</button>
 			</div>
 
@@ -269,7 +272,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ diagramRef, code = '
 						className="export-option"
 						onClick={handleSave}
 					>
-						<File size={16} weight="regular" />
+						<FileIcon size={16} weight="regular" />
 						.molic
 					</button>
 					
@@ -278,28 +281,28 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ diagramRef, code = '
 						className="export-option"
 						onClick={handleExportSVG}
 					>
-						<FileSvg size={16} weight="regular" />
+						<FileSvgIcon size={16} weight="regular" />
 						.svg
           </button>
           <button
 						className="export-option"
 						onClick={handleExportPNGWhite}
 					>
-						<FilePng size={16} weight="regular" />
+						<FilePngIcon size={16} weight="regular" />
 						.png (fundo branco)
 					</button>
 					<button
 						className="export-option"
 						onClick={handleExportPNG}
 					>
-						<FilePng size={16} weight="regular" />
+						<FilePngIcon size={16} weight="regular" />
 						.png (fundo transparente)
 					</button>		
 					<button
 						className="export-option"
 						onClick={handleExportPDF}
 					>
-						<FilePdf size={16} weight="regular" />
+						<FilePdfIcon size={16} weight="regular" />
 						.pdf
           </button>
           <hr className="export-menu-divider"></hr>

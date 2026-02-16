@@ -45,7 +45,7 @@ export const molicLanguage: languages.IMonarchLanguage = {
 	speakers: ["u", "d", "du", "anon"],
 
 	// Símbolos comuns
-	symbols: /[=><!~?:&|+\-*\/\^%]+/,
+	symbols: /[=><!~?:&|+\-*/^%]+/,
 
 	tokenizer: {
 		root: [
@@ -80,7 +80,7 @@ export const molicLanguage: languages.IMonarchLanguage = {
 			{ include: "@whitespace" },
 
 			// Delimitadores
-			[/[{}()\[\]]/, "@brackets"],
+			[/[[\]{}()]/, "@brackets"],
 
 			// Operadores
 			[/[=:]/, "operator"],
@@ -101,17 +101,17 @@ export const molicLanguage: languages.IMonarchLanguage = {
 			],
 
 			// Comentários de linha
-			[/\/\/.*$/, "comment"],
+			[/[/]{2}.*$/, "comment"],
 
 			// Comentários de bloco
-			[/\/\*/, "comment", "@comment"],
+			[/[/]\*/, "comment", "@comment"],
 		],
 
 		comment: [
-			[/[^\/*]+/, "comment"],
-			[/\/\*/, "comment", "@push"],
-			[/\*\//, "comment", "@pop"],
-			[/[\/*]/, "comment"],
+			[/[^/*]+/, "comment"],
+			[/[/]\*/, "comment", "@push"],
+			[/\*[/]/, "comment", "@pop"],
+			[/[/*]/, "comment"],
 		],
 
 		string: [
@@ -128,8 +128,8 @@ export const molicLanguage: languages.IMonarchLanguage = {
 
 		whitespace: [
 			[/[ \t\r\n]+/, "white"],
-			[/\/\*/, "comment", "@comment"],
-			[/\/\/.*$/, "comment"],
+			[/[/]\*/, "comment", "@comment"],
+			[/[/]{2}.*$/, "comment"],
 		],
 
 		afterNodeType: [

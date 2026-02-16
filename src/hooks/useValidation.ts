@@ -13,8 +13,14 @@ export const useValidation = (code: string, debounceMs: number = 800) => {
 
 		// Se estiver vazio, não há erro
 		if (!code.trim()) {
-			setError(null);
-			return;
+			timeoutRef.current = setTimeout(() => {
+				setError(null);
+			}, 0);
+			return () => {
+				if (timeoutRef.current) {
+					clearTimeout(timeoutRef.current);
+				}
+			};
 		}
 
 		// Agendar validação após debounce

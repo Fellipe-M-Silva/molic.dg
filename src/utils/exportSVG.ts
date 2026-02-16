@@ -1,5 +1,6 @@
 import { toSvg, toPng } from "html-to-image";
 import jsPDF from "jspdf";
+import type { Edge, Node as RFNode } from "reactflow";
 
 export const exportDiagramAsSVG = async (
 	diagramElement: HTMLElement | null,
@@ -701,8 +702,8 @@ export interface MolicProject {
 
 export const saveMolicProject = (
 	code: string,
-	nodes: any[],
-	edges: any[],
+	nodes: RFNode[],
+	edges: Edge[],
 	filename?: string,
 ) => {
 	try {

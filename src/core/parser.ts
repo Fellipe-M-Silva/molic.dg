@@ -82,6 +82,7 @@ semantics.addOperation("toAST", {
 		contents: any,
 		_close: any,
 	) {
+		void _close;
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -104,6 +105,7 @@ semantics.addOperation("toAST", {
 	},
 
 	Global(_global: any, id: any, _open: any, connections: any, _close: any) {
+		void _close;
 		const connNodes = connections.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -116,6 +118,7 @@ semantics.addOperation("toAST", {
 	},
 
 	Start(_start: any, id: any, _open: any, connections: any, _close: any) {
+		void _close;
 		const connNodes = connections.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -151,6 +154,7 @@ semantics.addOperation("toAST", {
 		contents: any,
 		_close: any,
 	) {
+		void _close;
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -164,6 +168,7 @@ semantics.addOperation("toAST", {
 	},
 
 	Process(_process: any, id: any, _open: any, contents: any, _close: any) {
+		void _close;
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -175,6 +180,7 @@ semantics.addOperation("toAST", {
 	},
 
 	Fork(_fork: any, id: any, _open: any, contents: any, _close: any) {
+		void _close;
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -200,6 +206,7 @@ semantics.addOperation("toAST", {
 		contents: any,
 		_close: any,
 	) {
+		void _close;
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
@@ -368,10 +375,12 @@ semantics.addOperation("toAST", {
 	},
 
 	dqString(_open: any, chars: any, _close: any) {
+		void _close;
 		return chars.sourceString;
 	},
 
 	sqString(_open: any, chars: any, _close: any) {
+		void _close;
 		return chars.sourceString;
 	},
 

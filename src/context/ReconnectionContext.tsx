@@ -1,10 +1,7 @@
-import React, { createContext, useState, useCallback, type ReactNode } from 'react';
+import React, { useState, useCallback, type ReactNode } from 'react';
 import { type Edge } from 'reactflow';
 import { type ReconnectionContextType } from './ReconnectionContextType';
-
-export { type ReconnectionContextType } from './ReconnectionContextType';
-
-export const ReconnectionContext = createContext<ReconnectionContextType | undefined>(undefined);
+import { ReconnectionContext } from './ReconnectionContextValue';
 
 interface ReconnectionProviderProps {
   children: ReactNode;

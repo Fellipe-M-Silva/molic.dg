@@ -8,6 +8,7 @@ import ReactFlow, {
   type Edge,
   type Node as RFNode,
   type Connection,
+  type ReactFlowInstance,
   useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -30,17 +31,21 @@ import './Diagram.css';
 
 interface DiagramProps {
   code: string;
-  ref?: React.RefObject<HTMLDivElement & { getNodesAndEdges: () => { nodes: RFNode[]; edges: Edge[] } }>;
 }
+
+export type DiagramHandle = HTMLDivElement & {
+  getNodesAndEdges: () => { nodes: RFNode[]; edges: Edge[] };
+  fitViewBeforeExport: () => void;
+};
 
 interface DiagramContentProps {
   code: string;
   onNodesEdgesChange?: (nodes: RFNode[], edges: Edge[]) => void;
-  reactFlowRef?: React.MutableRefObject<any | null>;
+  reactFlowRef?: React.MutableRefObject<ReactFlowInstance<RFNode, Edge> | null>;
 }
 
 // Componente auxiliar para capturar a instância do ReactFlow
-const DiagramFlowController: React.FC<{ reactFlowRef: React.MutableRefObject<any> }> = ({ reactFlowRef }) => {
+const DiagramFlowController: React.FC<{ reactFlowRef: React.MutableRefObject<ReactFlowInstance<RFNode, Edge> | null> }> = ({ reactFlowRef }) => {
   const instance = useReactFlow();
   useEffect(() => {
     reactFlowRef.current = instance;
@@ -221,9 +226,19 @@ const DiagramContent: React.FC<DiagramContentProps> = ({ code, onNodesEdgesChang
 
   // Handlers para seleção múltipla com caixa
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+
+    if (isConnecting || isReconnecting) {
+      return;
+    }
+
     // Verificar se o clique foi em um elemento da toolbar
     const target = e.target as HTMLElement;
     if (target.closest('.react-flow__controls') || target.closest('[data-toolbar="true"]')) {
+      return;
+    }
+
+    if (target.closest('.react-flow__handle') || target.closest('.react-flow__edge')) {
       return;
     }
 
@@ -232,7 +247,7 @@ const DiagramContent: React.FC<DiagramContentProps> = ({ code, onNodesEdgesChang
       selectBoxRef.current = { startX: e.clientX, startY: e.clientY };
       setIsSelectingWithBox(true);
     }
-  }, []);
+  }, [isConnecting, isReconnecting]);
 
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
     if (!selectBoxRef.current || !isSelectingWithBox) return;
@@ -357,11 +372,11 @@ const DiagramContent: React.FC<DiagramContentProps> = ({ code, onNodesEdgesChang
   );
 };
 
-export const Diagram = React.forwardRef<HTMLDivElement & { getNodesAndEdges: () => { nodes: RFNode[]; edges: Edge[] }, fitViewBeforeExport: () => void }, DiagramProps>(({ code }, ref) => {
+export const Diagram = React.forwardRef<DiagramHandle, DiagramProps>(({ code }, ref) => {
   const [diagramNodes, setDiagramNodes] = useState<RFNode[]>([]);
   const [diagramEdges, setDiagramEdges] = useState<Edge[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
-  const reactFlowRef = useRef<any>(null);
+  const reactFlowRef = useRef<ReactFlowInstance<RFNode, Edge> | null>(null);
 
   const handleNodesEdgesChange = useCallback((nodes: RFNode[], edges: Edge[]) => {
     setDiagramNodes(nodes);
@@ -369,7 +384,7 @@ export const Diagram = React.forwardRef<HTMLDivElement & { getNodesAndEdges: () 
   }, []);
 
   useImperativeHandle(ref, () => {
-    const element = contentRef.current || ({} as any);
+    const element = contentRef.current ?? document.createElement('div');
     return Object.assign(element, {
       getNodesAndEdges: () => ({
         nodes: diagramNodes,
@@ -380,7 +395,7 @@ export const Diagram = React.forwardRef<HTMLDivElement & { getNodesAndEdges: () 
           reactFlowRef.current.fitView({ padding: 0.1, duration: 200 });
         }
       },
-    });
+    }) as DiagramHandle;
   }, [diagramNodes, diagramEdges]);
 
   return (

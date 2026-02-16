@@ -2,8 +2,8 @@
 
 /* Estilo base dos handles */
 .react-flow__handle {
-	width: 10px;
-	height: 10px;
+	width: 8px;
+	height: 8px;
 	background: var(--primary);
 	opacity: 0; /* Invisível por padrão */
 	transition:
@@ -11,14 +11,16 @@
 		background-color 0.2s;
 	border-radius: 50%;
 	border: 1px solid white;
+	outline: 4px solid transparent;
 }
 
 /* 1. Quando o usuário está arrastando uma linha (modo de conexão) */
 .app-connecting .react-flow__handle {
 	opacity: 1;
 	background: var(--primary); /* Destaque azul/verde */
-	width: 12px;
-	height: 12px;
+	width: 8px;
+	height: 8px;
+	outline: 4px solid transparent;
 }
 
 /* 3. Durante reconexão: esconder TODOS os handles */
@@ -30,8 +32,8 @@
 .app-reconnecting .reconnecting .react-flow__handle {
 	opacity: 1 !important;
 	background: var(--primary);
-	width: 12px;
-	height: 12px;
+	width: 8px;
+	height: 8px;
 }
 
 /* --- Ajustes Gerais do React Flow --- */

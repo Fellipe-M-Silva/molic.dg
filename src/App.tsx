@@ -6,7 +6,7 @@ import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 import { ExportButton } from './components/ExportButton/ExportButton';
 import { CodeEditor } from './components/CodeEditor/CodeEditor';
 import { ProblemsPanel } from './components/ProblemsPanel/ProblemsPanel';
-import { Diagram } from './components/Diagram/Diagram';
+import { Diagram, type DiagramHandle } from './components/Diagram/Diagram';
 import { useValidation } from './hooks/useValidation';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './context/ToastContext';
@@ -26,7 +26,7 @@ function AppContent() {
   });
   const [isResizing, setIsResizing] = useState(false);
   const editorPaneRef = useRef<HTMLDivElement>(null);
-  const diagramRef = useRef<any>(null);
+  const diagramRef = useRef<DiagramHandle | null>(null);
 
   // Validação com debounce
   const error = useValidation(code, 800);

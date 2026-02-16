@@ -62,7 +62,7 @@
 
 	/* BORDAS */
 	--border-base: var(--neutral-600);
-	--border-hover: var(--neutral-500);	
+	--border-hover: var(--neutral-500);
 	--border-muted: var(--neutral-600);
 	--border-alt: var(--neutral-600);
 	--border-node: var(--neutral-200);
@@ -219,7 +219,3 @@ header h1 {
 	background: var(--bg-canvas);
 	position: relative;
 }
-/* 
-.react-flow__background {
-	background-color: var(--bg-canvas);
-} */
