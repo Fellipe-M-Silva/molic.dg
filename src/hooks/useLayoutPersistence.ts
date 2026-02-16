@@ -32,14 +32,6 @@ export const useLayoutPersistence = () => {
 			})),
 		};
 
-		console.log("[MoLIC] Salvando layout:");
-		console.log("  Nodes:", layout.nodes.length);
-		console.log("  Edges:", layout.edges.length);
-		layout.edges.forEach((e) => {
-			console.log(
-				`  ${e.id}: source=${e.sourceHandle}, target=${e.targetHandle}`,
-			);
-		});
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
 	}, []);
 

@@ -161,16 +161,9 @@ const DiagramContent: React.FC<any> = ({ code }) => {
       const savedString = localStorage.getItem('molic-layout-stable-v4');
       let savedHandlesMap: Map<string, { sourceHandle: string, targetHandle: string }> | undefined;
       
-      console.log('[MoLIC] ===== RECONSTRUINDO DIAGRAMA =====');
-      
       if (savedString) {
         try {
           const saved = JSON.parse(savedString);
-          console.log('[MoLIC] Handles salvos no localStorage:');
-          saved.edges.forEach((e: any) => {
-            console.log(`  ${e.id}: source=${e.sourceHandle}, target=${e.targetHandle}`);
-          });
-          
           savedHandlesMap = new Map(
             saved.edges
               .filter((e: any) => e.sourceHandle && e.targetHandle)
@@ -179,15 +172,12 @@ const DiagramContent: React.FC<any> = ({ code }) => {
                 { sourceHandle: e.sourceHandle, targetHandle: e.targetHandle }
               ])
           );
-          console.log('[MoLIC] Handles mapeados para transformer:', savedHandlesMap.size);
         } catch (e) {
           console.error('Erro ao carregar handles salvos', e);
         }
       }
       
       const { nodes: layoutNodes, edges: layoutEdges } = transformer(ast, savedHandlesMap);
-      console.log('[MoLIC] Edges gerados pelo transformer:');
-      layoutEdges.forEach(e => console.log(`  ${e.id}: source=${e.sourceHandle}, target=${e.targetHandle}`));
       
       // Aplicar layout salvo (positions)
       const { nodes: finalNodes, edges: finalEdges } = applySavedLayout(layoutNodes, layoutEdges);
