@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef, useImperativeHandle } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
@@ -7,7 +6,9 @@ import ReactFlow, {
   type OnConnectStart,
   type OnConnectEnd,
   type Edge,
+  type Node as RFNode,
   type Connection,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -29,10 +30,25 @@ import './Diagram.css';
 
 interface DiagramProps {
   code: string;
-  ref?: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement & { getNodesAndEdges: () => { nodes: RFNode[]; edges: Edge[] } }>;
 }
 
-const DiagramContent: React.FC<any> = ({ code }) => {
+interface DiagramContentProps {
+  code: string;
+  onNodesEdgesChange?: (nodes: RFNode[], edges: Edge[]) => void;
+  reactFlowRef?: React.MutableRefObject<any | null>;
+}
+
+// Componente auxiliar para capturar a instância do ReactFlow
+const DiagramFlowController: React.FC<{ reactFlowRef: React.MutableRefObject<any> }> = ({ reactFlowRef }) => {
+  const instance = useReactFlow();
+  useEffect(() => {
+    reactFlowRef.current = instance;
+  }, [instance, reactFlowRef]);
+  return null;
+};
+
+const DiagramContent: React.FC<DiagramContentProps> = ({ code, onNodesEdgesChange, reactFlowRef }) => {
   const nodeTypes = useMemo(() => ({ molicNode: MolicNode }), []);
   const edgeTypes = useMemo(
     () => ({ simultaneous: SimultaneousEdge, molic: MolicEdge }),
@@ -74,7 +90,7 @@ const DiagramContent: React.FC<any> = ({ code }) => {
   const onConnectEnd: OnConnectEnd = useCallback(() => setIsConnecting(false), []);
   
   // Handler para reconexão de edges
-  const onReconnectStart = useCallback((_event: any, edge: Edge) => {
+  const onReconnectStart = useCallback((_event: React.MouseEvent | React.TouchEvent, edge: Edge) => {
     edgeReconnectSuccessful.current = false;
     setIsReconnecting(true);
     // Guardar backup de todas as edges para restaurar se falhar
@@ -142,10 +158,11 @@ const DiagramContent: React.FC<any> = ({ code }) => {
   
   // Salvar layout quando nodes ou edges mudam
   useEffect(() => {
+    onNodesEdgesChange?.(nodes, edges);
     if (nodes.length > 0 || edges.length > 0) {
       saveLayout(nodes, edges);
     }
-  }, [nodes, edges, saveLayout]);
+  }, [nodes, edges, saveLayout, onNodesEdgesChange]);
 
   useEffect(() => {
     if (!code) return;
@@ -166,8 +183,8 @@ const DiagramContent: React.FC<any> = ({ code }) => {
           const saved = JSON.parse(savedString);
           savedHandlesMap = new Map(
             saved.edges
-              .filter((e: any) => e.sourceHandle && e.targetHandle)
-              .map((e: any) => [
+              .filter((e: Edge) => e.sourceHandle && e.targetHandle)
+              .map((e: Edge) => [
                 e.id,
                 { sourceHandle: e.sourceHandle, targetHandle: e.targetHandle }
               ])
@@ -305,6 +322,7 @@ const DiagramContent: React.FC<any> = ({ code }) => {
       >
         <Background gap={16} size={1} />
         <Controls />
+        {reactFlowRef && <DiagramFlowController reactFlowRef={reactFlowRef} />}
         <DiagramToolbar
           canUndo={canUndo}
           canRedo={canRedo}
@@ -339,11 +357,36 @@ const DiagramContent: React.FC<any> = ({ code }) => {
   );
 };
 
-export const Diagram = React.forwardRef<HTMLDivElement, DiagramProps>(({ code }, ref) => {
+export const Diagram = React.forwardRef<HTMLDivElement & { getNodesAndEdges: () => { nodes: RFNode[]; edges: Edge[] }, fitViewBeforeExport: () => void }, DiagramProps>(({ code }, ref) => {
+  const [diagramNodes, setDiagramNodes] = useState<RFNode[]>([]);
+  const [diagramEdges, setDiagramEdges] = useState<Edge[]>([]);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactFlowRef = useRef<any>(null);
+
+  const handleNodesEdgesChange = useCallback((nodes: RFNode[], edges: Edge[]) => {
+    setDiagramNodes(nodes);
+    setDiagramEdges(edges);
+  }, []);
+
+  useImperativeHandle(ref, () => {
+    const element = contentRef.current || ({} as any);
+    return Object.assign(element, {
+      getNodesAndEdges: () => ({
+        nodes: diagramNodes,
+        edges: diagramEdges,
+      }),
+      fitViewBeforeExport: () => {
+        if (reactFlowRef.current?.fitView) {
+          reactFlowRef.current.fitView({ padding: 0.1, duration: 200 });
+        }
+      },
+    });
+  }, [diagramNodes, diagramEdges]);
+
   return (
-    <div ref={ref} className="diagram-wrapper">
+    <div ref={contentRef} className="diagram-wrapper">
       <ReconnectionProvider>
-        <DiagramContent code={code} />
+        <DiagramContent code={code} onNodesEdgesChange={handleNodesEdgesChange} reactFlowRef={reactFlowRef} />
       </ReconnectionProvider>
     </div>
   );

@@ -9,6 +9,7 @@ import { ProblemsPanel } from './components/ProblemsPanel/ProblemsPanel';
 import { Diagram } from './components/Diagram/Diagram';
 import { useValidation } from './hooks/useValidation';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { ToastProvider } from './context/ToastContext';
 import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react';
 
 export const INITIAL_CODE = ``;
@@ -25,7 +26,7 @@ function AppContent() {
   });
   const [isResizing, setIsResizing] = useState(false);
   const editorPaneRef = useRef<HTMLDivElement>(null);
-  const diagramRef = useRef<HTMLDivElement>(null);
+  const diagramRef = useRef<any>(null);
 
   // Validação com debounce
   const error = useValidation(code, 800);
@@ -129,7 +130,21 @@ function AppContent() {
         )}
 
         <ThemeToggle />
-        <ExportButton diagramRef={diagramRef} />
+        <ExportButton 
+          diagramRef={diagramRef} 
+          code={code}
+          onLoadMolic={(project) => {
+            // Atualizar o código
+            setCode(project.code);
+            localStorage.setItem('molic-code', project.code);
+            
+            // Salvar o layout no localStorage
+            localStorage.setItem('molic-layout-stable-v4', JSON.stringify({
+              nodes: project.layout.nodes,
+              edges: project.layout.edges
+            }));
+          }}
+        />
       </header>
 
       <main className="workspace">
@@ -190,11 +205,13 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <ThemeProvider>
-      <ReactFlowProvider>
-        <AppContent />
-      </ReactFlowProvider>
-    </ThemeProvider>
-  );
+	return (
+		<ThemeProvider>
+			<ReactFlowProvider>
+				<ToastProvider>
+					<AppContent />
+				</ToastProvider>
+			</ReactFlowProvider>
+		</ThemeProvider>
+	);
 }

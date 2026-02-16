@@ -30,7 +30,8 @@
 	--text-primary: var(--neutral-50);
 
 	/* BORDAS */
-	--border-base: var(--neutral-500);
+	--border-base: var(--neutral-300);
+	--border-hover: var(--neutral-400);
 	--border-muted: var(--neutral-300);
 	--border-alt: var(--neutral-300);
 	--border-node: var(--neutral-800);
@@ -61,6 +62,7 @@
 
 	/* BORDAS */
 	--border-base: var(--neutral-600);
+	--border-hover: var(--neutral-500);	
 	--border-muted: var(--neutral-600);
 	--border-alt: var(--neutral-600);
 	--border-node: var(--neutral-200);

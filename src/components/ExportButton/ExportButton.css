@@ -2,28 +2,37 @@
 	position: relative;
 	display: flex;
 	align-items: center;
+	gap: 4px;
+}
+
+.button-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 8px;
 }
 
 .export-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 32px;
-	height: 32px;
-	padding: 0;
-	margin: 0 8px;
+	gap: 8px;
+	padding: 6px 12px;
+	margin: 0;
 	background: var(--button-bg);
-	border: 1px solid var(--button-border);
-	border-radius: 4px;
+	border: 1px solid var(--border-base);
+	border-radius: 6px;
 	cursor: pointer;
 	color: var(--text-base);
 	transition: all 0.2s ease;
 	font-size: 14px;
+	font-weight: 500;
+	white-space: nowrap;
 }
 
 .export-button:hover:not(:disabled) {
-	background: var(--button-hover-bg);
-	border-color: var(--button-hover-border);
+	background: var(--bg-hover);
+	border-color: var(--border-hover);
 }
 
 .export-button:disabled {
@@ -31,25 +40,40 @@
 	cursor: not-allowed;
 }
 
+.export-button.export-dropdown {
+	width: auto;
+	padding: 6px 8px;
+	gap: 4px;
+}
+
+.export-button.export-dropdown.active {
+	background: var(--bg-hover);
+	border-color: var(--border-hover);
+}
+
 .export-menu {
 	position: absolute;
 	top: 100%;
 	right: 0;
-	margin-top: 4px;
-	background: var(--surface-secondary);
-	border: 1px solid var(--border-color);
-	border-radius: 4px;
+	margin-top: 2px;
+	padding: 8px;
+	background: var(--bg-base);
+	border: 1px solid var(--border-base);
+	border-radius: 8px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	min-width: 160px;
+	min-width: 200px;
 	z-index: 1000;
 }
 
 .export-option {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	width: 100%;
 	padding: 8px 12px;
 	background: transparent;
 	border: none;
+	border-radius: 4px;
 	color: var(--text-base);
 	cursor: pointer;
 	text-align: left;
@@ -57,19 +81,16 @@
 	transition: background 0.2s ease;
 }
 
-.export-option:first-child {
-	border-radius: 4px 4px 0 0;
-}
-
-.export-option:last-child {
-	border-radius: 0 0 4px 4px;
-}
-
 .export-option:hover:not(:disabled) {
-	background: var(--button-hover-bg);
+	background: var(--bg-hover);
 }
 
 .export-option:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
+}
+
+.export-menu-divider {
+	margin: 4px 8px;
+	border-top: 1px solid var(--border-muted);
 }
