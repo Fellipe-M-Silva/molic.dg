@@ -1,0 +1,313 @@
+      const snippets = [
+        {
+          label: 'scene block',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'scene ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Cria um bloco de cena.',
+        },
+        {
+          label: 'scene (sc)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'scene ${1:Name} {\n\ttopic: "${2:Titulo}"\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: sc',
+          filterText: 'sc',
+          sortText: '01',
+        },
+        {
+          label: 'global block',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'global ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Cria um bloco global.',
+        },
+        {
+          label: 'global (gl)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'global ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: gl',
+          filterText: 'gl',
+          sortText: '01',
+        },
+        {
+          label: 'dialog block',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'dialog ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Cria um bloco de dialogo.',
+        },
+        {
+          label: 'dialog (di)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'dialog ${1:Name} {\n\tsubtopic: "${2:Subtopico}"\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: di',
+          filterText: 'di',
+          sortText: '01',
+        },
+        {
+          label: 'start (st)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'start ${1:StartId} {\n\tu: "${2:Fala}" t ${3:Destino}\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: st',
+          filterText: 'st',
+          sortText: '01',
+        },
+        {
+          label: 'process (pr)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'process ${1:ProcessId} {\n\td: "${2:Troca}" t ${3:Destino}\n\td: "${4:Recuperacao}" r ${3:Destino}\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: pr',
+          filterText: 'pr',
+          sortText: '01',
+        },
+        {
+          label: 'external (ex)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'external ${1:ExternalId}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: ex',
+          filterText: 'ex',
+          sortText: '01',
+        },
+        {
+          label: 'contact (co)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'contact ${1:ContactId} "${2:Nome}" {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: co',
+          filterText: 'co',
+          sortText: '01',
+        },
+        {
+          label: 'fork (fo)',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'fork ${1:ForkId} {\n\td: "${2:TrocaCena}" t ${3:SceneId}\n\td: "${4:TrocaExt}" t ${5:ExtId}\n}\n\nexternal ${5:ExtId}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          documentation: 'Atalho: fo',
+          filterText: 'fo',
+          sortText: '01',
+        },
+        {
+          label: 'procfork',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'process ${1:ProcessId} {\n\td: "${2:Troca}" t ${3:ForkId}\n}\n\nfork ${3:ForkId} {\n\td: "${4:TrocaCena}" t ${5:SceneId}\n\td: "${6:TrocaExt}" t ${7:ExtId}\n}\n\nexternal ${7:ExtId}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'procfork',
+          sortText: '01',
+        },
+        {
+          label: 'flow seq',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'seq ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'seq dialog',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'seq {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'seq',
+          sortText: '01',
+        },
+        {
+          label: 'flow xor',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'xor ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'xor dialog',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'xor {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'xor',
+          sortText: '01',
+        },
+        {
+          label: 'flow or',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'or ${1:Name} {\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'or dialog',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'or {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'or',
+          sortText: '01',
+        },
+        {
+          label: 'and dialog',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'and {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'and',
+          sortText: '01',
+        },
+        {
+          label: 'topic',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'topic: "${1:Titulo}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'subtopic',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'subtopic: "${1:Subtitulo}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'u: utterance',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'u: "${1:Fala}" t ${2:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'd: utterance',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'd: "${1:Fala}" t ${2:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'du: fields',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'du: ${1:campo1}, ${2:campo2}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'uif t',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'u: "${1:Fala}" if: "${2:condicao}" t ${3:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'uift',
+          sortText: '00',
+        },
+        {
+          label: 'dif t',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'd: "${1:Fala}" if: "${2:condicao}" t ${3:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'dift',
+          sortText: '00',
+        },
+        {
+          label: 'duif t',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'du: ${1:campo1}, ${2:campo2} if: "${3:condicao}" t ${4:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'duift',
+          sortText: '00',
+        },
+        {
+          label: 'uwh t',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'u: "${1:Fala}" when: "${2:evento}" t ${3:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'uwht',
+          sortText: '00',
+        },
+        {
+          label: 'dwh t',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'd: "${1:Fala}" when: "${2:evento}" t ${3:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'dwht',
+          sortText: '00',
+        },
+        {
+          label: 'duwh t',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'du: ${1:campo1}, ${2:campo2} when: "${3:evento}" t ${4:Destino}',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          filterText: 'duwht',
+          sortText: '00',
+        },
+        {
+          label: 'if clause',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'if: "${1:condicao}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'when clause',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'when: "${1:evento}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'why clause',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'why: "${1:motivo}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'effect clause',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'effect: "${1:efeito}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+        {
+          label: 'let clause',
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: 'let: "${1:valor}"',
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        },
+      ];
+
+      monaco.languages.registerCompletionItemProvider('molic', {
+        triggerCharacters: [':', '>', '.', '"', '='],
+        provideCompletionItems: (
+          model: Monaco.editor.ITextModel,
+          position: Monaco.Position,
+        ) => {
+          const lineText = model.getLineContent(position.lineNumber);
+          const prefix = lineText.slice(0, position.column - 1);
+          const word = model.getWordUntilPosition(position);
+          const fallbackRange = new monaco.Range(
+            position.lineNumber,
+            word.startColumn,
+            position.lineNumber,
+            word.endColumn,
+          );
+          const rule = autoRules.find((item) => item.pattern.test(prefix));
+          if (rule) {
+            const match = prefix.match(rule.pattern);
+            if (match) {
+              const startColumn = prefix.length - match[0].length + 1;
+              const range = new monaco.Range(
+                position.lineNumber,
+                startColumn,
+                position.lineNumber,
+                position.column,
+              );
+              return {
+                suggestions: [
+                  {
+                    label: rule.label,
+                    kind: monaco.languages.CompletionItemKind.Snippet,
+                    insertText: rule.build(match),
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    range,
+                  },
+                ],
+              };
+            }
+          }
+
+          return {
+            suggestions: [...snippets, ...keywordItems].map((item) => ({
+              ...item,
+              range: fallbackRange,
+            })),
+          };
+        },
+      });
+'@;
+$updated = $before + $replacement + $after;
+Set-Content -Path $file -Value $updated -NoNewline;
