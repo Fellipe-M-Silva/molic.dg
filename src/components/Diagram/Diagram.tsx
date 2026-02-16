@@ -4,7 +4,6 @@ import ReactFlow, {
   Background, 
   Controls, 
   ConnectionMode,
-  useReactFlow,
   type OnConnectStart,
   type OnConnectEnd,
   type Edge,
@@ -30,6 +29,7 @@ import './Diagram.css';
 
 interface DiagramProps {
   code: string;
+  ref?: React.RefObject<HTMLDivElement>;
 }
 
 const DiagramContent: React.FC<any> = ({ code }) => {
@@ -64,7 +64,6 @@ const DiagramContent: React.FC<any> = ({ code }) => {
   const [isSelectingWithBox, setIsSelectingWithBox] = useState(false);
   const selectBoxRef = useRef<{ startX: number; startY: number } | null>(null);
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
-  const { getNode } = useReactFlow();
   
   const { saveLayout, applySavedLayout } = useLayoutPersistence();
   const edgeReconnectSuccessful = useRef(true);
@@ -75,7 +74,7 @@ const DiagramContent: React.FC<any> = ({ code }) => {
   const onConnectEnd: OnConnectEnd = useCallback(() => setIsConnecting(false), []);
   
   // Handler para reconexão de edges
-  const onReconnectStart = useCallback((event: any, edge: Edge) => {
+  const onReconnectStart = useCallback((_event: any, edge: Edge) => {
     edgeReconnectSuccessful.current = false;
     setIsReconnecting(true);
     // Guardar backup de todas as edges para restaurar se falhar
@@ -313,7 +312,6 @@ const DiagramContent: React.FC<any> = ({ code }) => {
         className={[isConnecting ? 'app-connecting' : '', isReconnecting ? 'app-reconnecting' : ''].filter(Boolean).join(' ')}
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
-        style={{ backgroundColor: 'var(--bg-canvas)' }}
       >
         <Background gap={16} size={1} />
         <Controls />
@@ -351,10 +349,12 @@ const DiagramContent: React.FC<any> = ({ code }) => {
   );
 };
 
-export const Diagram: React.FC<DiagramProps> = ({ code }) => {
+export const Diagram = React.forwardRef<HTMLDivElement, DiagramProps>(({ code }, ref) => {
   return (
-    <ReconnectionProvider>
-      <DiagramContent code={code} />
-    </ReconnectionProvider>
+    <div ref={ref} className="diagram-wrapper">
+      <ReconnectionProvider>
+        <DiagramContent code={code} />
+      </ReconnectionProvider>
+    </div>
   );
-};
+});

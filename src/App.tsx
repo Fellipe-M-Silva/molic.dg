@@ -3,6 +3,7 @@ import { ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './styles/main.css';
 import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
+import { ExportButton } from './components/ExportButton/ExportButton';
 import { CodeEditor } from './components/CodeEditor/CodeEditor';
 import { ProblemsPanel } from './components/ProblemsPanel/ProblemsPanel';
 import { Diagram } from './components/Diagram/Diagram';
@@ -24,6 +25,7 @@ function AppContent() {
   });
   const [isResizing, setIsResizing] = useState(false);
   const editorPaneRef = useRef<HTMLDivElement>(null);
+  const diagramRef = useRef<HTMLDivElement>(null);
 
   // Validação com debounce
   const error = useValidation(code, 800);
@@ -127,6 +129,7 @@ function AppContent() {
         )}
 
         <ThemeToggle />
+        <ExportButton diagramRef={diagramRef} />
       </header>
 
       <main className="workspace">
@@ -179,7 +182,7 @@ function AppContent() {
         )}
 
         <div className="diagram-pane">
-          <Diagram code={code} />
+          <Diagram code={code} ref={diagramRef} />
         </div>
       </main>
     </div>

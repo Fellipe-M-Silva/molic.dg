@@ -1,0 +1,75 @@
+.export-button-container {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.export-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	margin: 0 8px;
+	background: var(--button-bg);
+	border: 1px solid var(--button-border);
+	border-radius: 4px;
+	cursor: pointer;
+	color: var(--text-base);
+	transition: all 0.2s ease;
+	font-size: 14px;
+}
+
+.export-button:hover:not(:disabled) {
+	background: var(--button-hover-bg);
+	border-color: var(--button-hover-border);
+}
+
+.export-button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.export-menu {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	margin-top: 4px;
+	background: var(--surface-secondary);
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	min-width: 160px;
+	z-index: 1000;
+}
+
+.export-option {
+	display: block;
+	width: 100%;
+	padding: 8px 12px;
+	background: transparent;
+	border: none;
+	color: var(--text-base);
+	cursor: pointer;
+	text-align: left;
+	font-size: 14px;
+	transition: background 0.2s ease;
+}
+
+.export-option:first-child {
+	border-radius: 4px 4px 0 0;
+}
+
+.export-option:last-child {
+	border-radius: 0 0 4px 4px;
+}
+
+.export-option:hover:not(:disabled) {
+	background: var(--button-hover-bg);
+}
+
+.export-option:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}

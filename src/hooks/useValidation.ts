@@ -3,7 +3,7 @@ import { parseMolic, type ParsingError } from "../core/parser";
 
 export const useValidation = (code: string, debounceMs: number = 800) => {
 	const [error, setError] = useState<ParsingError | null>(null);
-	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	useEffect(() => {
 		// Limpar timeout anterior se existir
