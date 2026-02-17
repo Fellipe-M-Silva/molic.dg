@@ -82,7 +82,8 @@ export interface ExternalNode extends ASTNode {
 export interface ContactNode extends ASTNode {
 	type: "contact";
 	id: string;
-	name: string;
+	role: string;
+	content: UtteranceNode[];
 	flows: { targetId: string; label?: ContentNode }[];
 }
 

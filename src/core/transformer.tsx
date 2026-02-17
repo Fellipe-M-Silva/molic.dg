@@ -54,7 +54,10 @@ const getEdgeLabelJSX = (item: any, validationError?: string, overridePrefix?: s
     );
   }
 
-  if (condition !== undefined) {
+  const hasEmptyCondition = condition !== undefined && condition === '';
+  const shouldHideIfLine = speaker === 'system' && hasEmptyCondition;
+
+  if (condition !== undefined && !shouldHideIfLine) {
     lines.push(
       <div key="cond" className="molic-edge-label-line meta">
         if: {condition ?? ""}
@@ -63,14 +66,14 @@ const getEdgeLabelJSX = (item: any, validationError?: string, overridePrefix?: s
   }
 
   if (type === "utterance") {
-    let mainText = "";
-    const prefix = overridePrefix ? `${overridePrefix}: ` : getBasePrefix(speaker);
-    if (speaker === "system" || speaker === "mixed") {
-      mainText = `${prefix}${text || ''}`;
-    } else {
-      mainText = `${prefix}${text || ''}`;
-    }
-    if (mainText) lines.push(<div key="main" className="molic-edge-label-line main">{mainText}</div>);
+    const basePrefix = overridePrefix ? overridePrefix : getBasePrefix(speaker).replace(': ', '');
+    const displayPrefix = (speaker === 'system' && hasEmptyCondition) ? 'if/d' : basePrefix;
+
+    lines.push(
+      <div key="main" className="molic-edge-label-line main">
+        <strong>{displayPrefix}:</strong> {text || ''}
+      </div>
+    );
   }
 
   if (letVar) lines.push(<div key="let" className="molic-edge-label-line meta">let: {letVar}</div>);
@@ -233,8 +236,9 @@ export const transformer = (ast: DiagramAST, savedHandles?: Map<string, { source
       currentX += 150;
     }
     else if (element.type === "contact") {
-      nodes.push({ id: element.id, type: "molicNode", position: { x: currentX, y: currentY + 64 }, data: { label: element.name, nodeType: 'contactNode' } });
-      if (element.content) element.content.forEach((item: any) => createEdge(element.id, item, element.name));
+      const roleLabel = element.role || element.id;
+      nodes.push({ id: element.id, type: "molicNode", position: { x: currentX, y: currentY + 64 }, data: { label: roleLabel, nodeType: 'contactNode' } });
+      if (element.content) element.content.forEach((item: any) => createEdge(element.id, item, roleLabel));
       currentX += 96;
     }
     else if (element.type === "process") {

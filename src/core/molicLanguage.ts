@@ -34,13 +34,22 @@ export const molicLanguage: languages.IMonarchLanguage = {
 	nodeTypes: ["scene", "global", "fork", "process", "external", "contact"],
 
 	// Keywords estruturais
-	keywords: ["start", "end", "break", "main", "preferred"],
+	keywords: ["start", "end", "break", "main", "preferred", "alert"],
 
 	// Fluxo de controle
 	flowKeywords: ["seq", "xor", "or", "and", "dialog", "if"],
 
 	// Cláusulas (usam ":")
-	clauses: ["topic", "subtopic", "let", "when", "why", "effect", "if"],
+	clauses: [
+		"topic",
+		"subtopic",
+		"let",
+		"when",
+		"why",
+		"effect",
+		"if",
+		"role",
+	],
 
 	speakers: ["u", "d", "du", "anon"],
 
@@ -50,7 +59,10 @@ export const molicLanguage: languages.IMonarchLanguage = {
 	tokenizer: {
 		root: [
 			// Cláusulas especiais com ":" (topic:, subtopic:, let:, why:, effect:, when:, if:)
-			[/\b(topic|subtopic|let|why|effect|when|if):/, "keyword.clause"],
+			[
+				/\b(topic|subtopic|let|why|effect|when|if|role):/,
+				"keyword.clause",
+			],
 
 			// Tipos de nó (scene, global, fork, process, external, contact)
 			[
@@ -101,7 +113,8 @@ export const molicLanguage: languages.IMonarchLanguage = {
 			],
 
 			// Comentários de linha
-			[/[/]{2}.*$/, "comment"],
+			[/\/\/.*$/, "comment"],
+			[/%.*$/, "comment"],
 
 			// Comentários de bloco
 			[/[/]\*/, "comment", "@comment"],
@@ -129,7 +142,8 @@ export const molicLanguage: languages.IMonarchLanguage = {
 		whitespace: [
 			[/[ \t\r\n]+/, "white"],
 			[/[/]\*/, "comment", "@comment"],
-			[/[/]{2}.*$/, "comment"],
+			[/\/\/.*$/, "comment"],
+			[/%.*$/, "comment"],
 		],
 
 		afterNodeType: [

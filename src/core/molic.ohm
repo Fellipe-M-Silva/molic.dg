@@ -6,7 +6,6 @@ Molic {
   Element
     = Scene
     | Global
-    | Comment
 
   // --- Estruturas Principais ---
   Scene
@@ -87,9 +86,19 @@ Molic {
     = "\"" (~"\"" any)* "\""  -- doubleQuote
     | "'" (~"'" any)* "'"     -- singleQuote
 
-  Comment
-    = "//" (~"\n" any)* ("\n" | end)  -- singleLine
-    | "/*" (~"*/" any)* "*/"          -- multiLine
+  comment
+    = lineComment
+    | percentComment
+    | blockComment
+
+  lineComment
+    = "//" (~"\n" any)*
+
+  percentComment
+    = "%" (~"\n" any)*
+
+  blockComment
+    = "/*" (~"*/" any)* "*/"
 
   space += comment
 }

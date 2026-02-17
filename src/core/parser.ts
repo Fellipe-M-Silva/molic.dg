@@ -8,12 +8,12 @@ Molic {
 
 	Element = Scene | Global | Start | Terminal | External | Contact | Process | Fork
 
-  Scene = "main"? "scene" identifier "{" SceneContent* "}"
+  Scene = "main"? "alert"? "scene" identifier "{" SceneContent* "}"
   Global = "global" identifier "{" SceneContent* "}"
   Start = "start" identifier "{" SceneContent* "}"
   Terminal = ("end" | "break") identifier
   External = "external" identifier
-	Contact = "contact" identifier string "{" UtteranceWithTransition* "}"
+	Contact = "contact" identifier "{" ContactContent* "}"
 	Process = "process" identifier "{" UtteranceWithTransition* "}"
 	Fork = "fork" identifier "{" UtteranceWithTransition* "}"
 
@@ -27,12 +27,21 @@ Molic {
   
 	FlowContent = SubTopic | UtteranceWithTransition | FlowControl | LetClause | EffectClause | WhyClause
 
+	ContactContent = RoleClause | ContactUtteranceWithTransition
+
 	UtteranceWithTransition = Preferred Utterance InlineMeta+ Transition --preferredWithMeta
 	                       | Preferred Utterance Transition --preferredPlain
 	                       | Utterance InlineMeta+ Transition --withMeta
 	                       | Utterance Transition? --plain
 
+	ContactUtteranceWithTransition = Preferred ContactUtterance InlineMeta+ Transition --preferredWithMeta
+	                             | Preferred ContactUtterance Transition --preferredPlain
+	                             | ContactUtterance InlineMeta+ Transition --withMeta
+	                             | ContactUtterance Transition? --plain
+
   Utterance = SystemUtterance | UserUtterance | MixedUtterance | AnonymousUtterance
+
+	ContactUtterance = ":" string Trigger?
 
 	SystemUtterance = "d:" string Trigger?
 	UserUtterance = "u:" string Trigger?
@@ -46,6 +55,7 @@ Molic {
 	LetClause = "let:" string
 	EffectClause = "effect:" string
 	WhyClause = "why:" string
+	RoleClause = "role:" string
 
 	InlineMeta = LetClause | EffectClause | WhyClause
 
@@ -55,8 +65,24 @@ Molic {
   Arrow = "=>" | "->" | "..>"
 
   string = dqString | sqString
-  dqString = "\\"" (~"\\"" any)* "\\""
+	dqString = "\\\"" (~"\\\"" any)* "\\\""
   sqString = "'" (~"'" any)* "'"
+  
+	comment
+		= lineComment
+		| percentComment
+		| blockComment
+
+	lineComment
+		= "//" (~"\\n" any)*
+
+	percentComment
+		= "%" (~"\\n" any)*
+
+	blockComment
+		= "/*" (~"*/" any)* "*/"
+
+	space += comment
 
   identifier = letter (alnum | "_")*
 }
@@ -76,6 +102,7 @@ semantics.addOperation("toAST", {
 
 	Scene(
 		mainOpt: any,
+		alertOpt: any,
 		_scene: any,
 		id: any,
 		_open: any,
@@ -100,7 +127,7 @@ semantics.addOperation("toAST", {
 			content: contentNodes,
 			exits: exits,
 			isMain: mainOpt.numChildren > 0,
-			variant: "normal",
+			variant: alertOpt.numChildren > 0 ? "alert" : "normal",
 		};
 	},
 
@@ -146,23 +173,21 @@ semantics.addOperation("toAST", {
 		};
 	},
 
-	Contact(
-		_contact: any,
-		id: any,
-		name: any,
-		_open: any,
-		contents: any,
-		_close: any,
-	) {
+	Contact(_contact: any, id: any, _open: any, contents: any, _close: any) {
 		void _close;
 		const contentNodes = contents.children
 			.map((c: any) => c.toAST())
 			.filter((c: any) => c !== null);
+		const roleNode = contentNodes.find((c: any) => c.type === "role");
+		const role = roleNode?.value ?? id.sourceString;
+		const utteranceNodes = contentNodes.filter(
+			(c: any) => c.type !== "role",
+		);
 		return {
 			type: "contact",
 			id: id.sourceString,
-			name: name.toAST(),
-			content: contentNodes,
+			role: role,
+			content: utteranceNodes,
 			flows: [],
 		};
 	},
@@ -275,6 +300,19 @@ semantics.addOperation("toAST", {
 		};
 	},
 
+	ContactUtterance(_colon: any, text: any, trigger: any) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+
+		return {
+			type: "utterance",
+			speaker: "system",
+			text: text.toAST(),
+			condition: trig?.condition,
+			when: trig?.when,
+		};
+	},
+
 	UtteranceWithTransition_withMeta(
 		utterance: any,
 		metas: any,
@@ -343,6 +381,74 @@ semantics.addOperation("toAST", {
 		};
 	},
 
+	ContactUtteranceWithTransition_withMeta(
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = transition.toAST();
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_preferredWithMeta(
+		_preferred: any,
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_plain(utterance: any, transition: any) {
+		const utt = utterance.toAST();
+		const trans =
+			transition.numChildren > 0
+				? transition.children[0].toAST()
+				: undefined;
+		return {
+			...utt,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_preferredPlain(
+		_preferred: any,
+		utterance: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		return {
+			...utt,
+			transition: trans,
+		};
+	},
+
 	Condition(_if: any, text: any) {
 		return { condition: text.toAST() };
 	},
@@ -361,6 +467,10 @@ semantics.addOperation("toAST", {
 
 	WhyClause(_why: any, text: any) {
 		return { type: "why", value: text.toAST() };
+	},
+
+	RoleClause(_role: any, text: any) {
+		return { type: "role", value: text.toAST() };
 	},
 
 	Transition(arrow: any, id: any) {

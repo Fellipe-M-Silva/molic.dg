@@ -1,0 +1,13 @@
+% Comentário de teste
+scene TestScene {
+  topic: "Test"
+  % Outro comentário
+  u: "Olá" -> OutraScene
+}
+
+% Comentário no meio
+scene OutraScene {
+  topic: "Outra"
+  d: "Oi" -> TestScene
+}
+% Comentário no final

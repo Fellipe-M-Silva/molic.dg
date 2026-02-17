@@ -2,7 +2,7 @@
 
 /* O container principal que envolve o texto */
 .molic-edge-label-container {
-	background-color: var(--bg-canvas);
+	background-color: var(--bg-base);
 	padding: 4px 8px;
 	border-radius: 6px;
 

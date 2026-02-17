@@ -392,7 +392,7 @@ export const Diagram = React.forwardRef<DiagramHandle, DiagramProps>(({ code }, 
       }),
       fitViewBeforeExport: () => {
         if (reactFlowRef.current?.fitView) {
-          reactFlowRef.current.fitView({ padding: 0.1, duration: 200 });
+          reactFlowRef.current.fitView({ padding: 0.2, duration: 200 });
         }
       },
     }) as DiagramHandle;
