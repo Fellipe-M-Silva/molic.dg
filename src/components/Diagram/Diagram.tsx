@@ -14,8 +14,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 
 import { MolicNode } from './MolicNode';
-import { SimultaneousEdge } from './SimultaneousEdge';
-import { MolicEdge } from './MolicEdge';
+import { SimultaneousEdge, MolicEdge } from './MolicEdge';
 import { DiagramToolbar } from './DiagramToolbar';
 import { transformer } from '../../core/transformer';
 import { parseMolic } from '../../core/parser';

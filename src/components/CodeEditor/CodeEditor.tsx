@@ -142,73 +142,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
         ...speakers.map((word) => ({ label: `${word}:`, kind: monaco.languages.CompletionItemKind.Keyword, insertText: `${word}: ` })),
       ];
 
-      const transitionSnippetOrder: { [key: string]: number } = {
-        'u': 0, 'uif': 1, 'ut': 2, 'ur': 3, 'us': 4, 'uift': 5, 'uifr': 6, 'uwht': 7, 'uwhr': 8,
-        'd': 9, 'dif': 10, 'dt': 11, 'dr': 12, 'ds': 13, 'dift': 14, 'difr': 15, 'dwht': 16, 'dwhr': 17,
-        'du': 18, 'duif': 19, 'dut': 20, 'duift': 21, 'duifr': 22, 'duwht': 23, 'duwhr': 24,
-        'anon': 25, 'anonif': 26, 'anont': 27, 'anonr': 28, 'anons': 29, 'anonift': 30, 'anonifr': 31, 'anonwht': 32, 'anonwhr': 33,
-      };
-
-      const transitionSnippets = ['u', 'd', 'du', 'anon']
-        .flatMap((speaker) => [undefined, 'if', 'when'].map((condition) => ({ speaker, condition })))
-        .flatMap(({ speaker, condition }) =>
-          ['t', 'r', 's'].map((transition) => {
-            if (speaker === 'du' && transition === 's') {
-              return null;
-            }
-            const trigger = `${speaker}${condition ?? ''}${transition}`;
-            const arrow = transition === 'r' ? '..>' : transition === 's' ? '=>' : '->';
-            const conditionLabel = condition ?? '';
-            const conditionPlaceholder = condition === 'when' ? 'gatilho' : 'condicao';
-            const sortIdx = transitionSnippetOrder[trigger] ?? 999;
-
-            if (speaker === 'du') {
-              const base = 'du: "' + '${1:Mensagem}' + '"';
-              const conditionPart = condition
-                ? ' ' + conditionLabel + ': "' + '${2:' + conditionPlaceholder + '}"'
-                : '';
-              const sceneIndex = condition ? 3 : 2;
-              const scenePart = ` ${arrow} ` + '${' + sceneIndex + ':Cena}';
-              return {
-                label: trigger,
-                kind: monaco.languages.CompletionItemKind.Snippet,
-                insertText: base + conditionPart + scenePart,
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                filterText: trigger,
-                sortText: String(sortIdx).padStart(3, '0'),
-              };
-            }
-
-            const speakerLabel = speaker === 'anon' ? 'anon' : speaker;
-            const base = speakerLabel + ': "' + '${1:Mensagem}' + '"';
-            const conditionPart = condition
-              ? ' ' + conditionLabel + ': "' + '${2:' + conditionPlaceholder + '}"'
-              : '';
-            const sceneIndex = condition ? 3 : 2;
-            const scenePart = ` ${arrow} ` + '${' + sceneIndex + ':Cena}';
-            return {
-              label: trigger,
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: base + conditionPart + scenePart,
-              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-              filterText: trigger,
-              sortText: String(sortIdx).padStart(3, '0'),
-            };
-          }),
-        );
-
-      const normalizedTransitionSnippets = transitionSnippets.filter(Boolean) as Monaco.languages.CompletionItem[];
+      const normalizedTransitionSnippets: Monaco.languages.CompletionItem[] = [];
 
       const baseSnippets = [
         {
-          label: 'scene block',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'scene ${1:Name} {\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-          documentation: 'Cria um bloco de cena.',
-        },
-        {
-          label: 'scene (scen)',
+          label: 'Cena (scene)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'scene ${1:Name} {\n\ttopic: "${2:Titulo}"\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -217,39 +155,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'global block',
+          label: 'Mudança de tópico global (global)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'global ${1:Name} {\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           documentation: 'Cria um bloco global.',
         },
         {
-          label: 'global (glob)',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'global ${1:Name} {\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-          documentation: 'Atalho: glob',
-          filterText: 'glob',
-          sortText: '01',
-        },
-        {
-          label: 'dialog block',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'dialog ${1:Name} {\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-          documentation: 'Cria um bloco de dialogo.',
-        },
-        {
-          label: 'dialog (dial)',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'dialog ${1:Name} {\n\tsubtopic: "${2:Subtopico}"\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-          documentation: 'Atalho: dial',
-          filterText: 'dial',
-          sortText: '01',
-        },
-        {
-          label: 'start (star)',
+          label: 'Ponto de abertura (start)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'start ${1:StartId} {\n\tu: "${2:Mensagem}" -> ${3:Cena}\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -258,7 +171,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'start scene (stsc)',
+          label: 'Cena inicial (start + scene)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'start ${1:StartId} {\n\tu: "${2:Mensagem}" -> ${3:SceneId}\n}\n\nscene ${3:SceneId} {\n\ttopic: "${4:Topico}"\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -267,7 +180,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'process (proc)',
+          label: 'Processo de sistema (process)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'process ${1:ProcessId} {\n\td: "${2:Troca}" -> ${3:Destino}\n\td: "${4:Recuperacao}" ..> ${3:Destino}\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -276,7 +189,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'external (exte)',
+          label: 'Interlocutor externo (external)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'external ${1:ExternalId}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -285,7 +198,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'contact (cont)',
+          label: 'Ponto de contato (contact)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'contact ${1:ContactId} {\n\trole: "${2:Suporte}"\n\t: "${3:Mensagem}" -> ${4:Destino}\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -294,7 +207,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'fork (fork)',
+          label: 'Bifurcação (fork)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'fork ${1:ForkId} {\n\td: "${2:TrocaCena}" -> ${3:SceneId}\n\td: "${4:TrocaExt}" -> ${5:ExtId}\n}\n\nexternal ${5:ExtId}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -303,7 +216,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'procfork',
+          label: 'Processo com bifurcação (procfork)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'process ${1:ProcessId} {\n\td: "${2:Troca}" -> ${3:ForkId}\n}\n\nfork ${3:ForkId} {\n\td: "${4:TrocaCena}" -> ${5:SceneId}\n\td: "${6:TrocaExt}" -> ${7:ExtId}\n}\n\nexternal ${7:ExtId}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -311,13 +224,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'flow seq',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'seq ${1:Name} {\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        },
-        {
-          label: 'seq dialog',
+          label: 'Diálogo SEQ (seq)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'seq {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -325,13 +232,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'flow xor',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'xor ${1:Name} {\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        },
-        {
-          label: 'xor dialog',
+          label: 'Diálogo XOR (xor)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'xor {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -339,13 +240,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'flow or',
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: 'or ${1:Name} {\n\t$0\n}',
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        },
-        {
-          label: 'or dialog',
+          label: 'Diálogo OR (or)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'or {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -353,7 +248,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '01',
         },
         {
-          label: 'and dialog',
+          label: 'Diálogo AND (and)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'and {\n\tsubtopic: "${1:Subtopico}"\n\t$0\n}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -373,25 +268,25 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'u: utterance',
+          label: 'Fala de transição (usuário)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'u: "${1:Mensagem}" -> ${2:Cena}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'd: utterance',
+          label: 'Fala de transição (designer)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'd: "${1:Mensagem}" -> ${2:Cena}',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'du: utterance',
+          label: 'Fala (designer + usuáiro)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'du: "${1:Mensagem}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'uif',
+          label: 'Fala condicional (uif)',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'u: "${1:Mensagem}" if: "${2:condicao}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
@@ -399,31 +294,31 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
           sortText: '00',
         },
         {
-          label: 'if clause',
+          label: 'Cláusula: if',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'if: "${1:condicao}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'when clause',
+          label: 'Cláusula: when',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'when: "${1:evento}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'why clause',
+          label: 'Cláusula: why',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'why: "${1:motivo}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'effect clause',
+          label: 'Cláusula: effect',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'effect: "${1:efeito}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         },
         {
-          label: 'let clause',
+          label: 'Cláusula: let',
           kind: monaco.languages.CompletionItemKind.Snippet,
           insertText: 'let: "${1:valor}"',
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,

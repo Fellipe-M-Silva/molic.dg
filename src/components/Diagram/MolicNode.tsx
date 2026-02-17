@@ -145,7 +145,7 @@ export const MolicNode = memo(({ data, selected, id }: NodeProps) => {
         {type === 'breakNode' && <div className="break-box"><div className="break-line" /></div>}
         {type === 'processNode' && <div className="process-box" />}
         {type === 'forkNode' && <div className="fork-bar" />}
-        {type === 'contactNode' && <><div className="contact-icon">user</div><span className="contact-label">{data.label}</span></>}
+        {type === 'contactNode' && <><span className="contact-label">{data.label}</span></>}
         
         {type === 'forkNode' ? <ForkHandleSet isConnectable={handlesConnectable} /> : <HandleSet isScene={false} isConnectable={handlesConnectable} />}
       </div>
