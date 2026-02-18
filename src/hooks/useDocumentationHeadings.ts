@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { DocumentElement } from "../../types/documentation";
+import type { DocumentElement } from "../../types/documentation.js";
 
 export interface Heading {
 	id: string;

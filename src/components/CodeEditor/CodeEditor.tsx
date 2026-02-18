@@ -18,7 +18,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
   const monacoRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
   const isInsertingSnippetRef = useRef(false);
-  const autoSnippetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSnippetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const editorOptions = {
     minimap: { enabled: false },
