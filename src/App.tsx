@@ -32,6 +32,17 @@ export const INITIAL_CODE = ` // Boas-vindas ao MoLIC.dg :)
 
 function AppContent() {
   const isMobile = useIsMobile();
+  const getMobileEditorSizing = (workspaceHeight?: number) => {
+    const viewportHeight = typeof window !== 'undefined'
+      ? window.visualViewport?.height ?? window.innerHeight
+      : 800;
+    const usableHeight = workspaceHeight ?? Math.max(320, viewportHeight - 48);
+    const max = Math.max(280, Math.round(usableHeight * 0.8));
+    const min = Math.min(Math.max(160, Math.round(usableHeight * 0.3)), max - 40);
+    const initial = Math.round(usableHeight * 0.6);
+
+    return { min, max, initial };
+  };
   const [currentPage, setCurrentPage] = useState<'editor' | 'docs'>('editor');
   const [code, setCode] = useState(() => {
     return localStorage.getItem('molic-code') || INITIAL_CODE;
@@ -50,13 +61,44 @@ function AppContent() {
     // Em mobile, calcula 50% da altura disponível
     // Em desktop, usa o valor salvo ou padrão de 200px
     if (isMobile) {
-      return 400; // ~50% de uma tela mobile típica
+      const { min, max, initial } = getMobileEditorSizing();
+      if (!saved) return initial;
+
+      const savedValue = Number(saved);
+      return Math.min(max, Math.max(min, savedValue));
     }
     return saved ? Number(saved) : 200;
   });
   const [isResizing, setIsResizing] = useState(false);
   const editorPaneRef = useRef<HTMLDivElement>(null);
   const diagramRef = useRef<DiagramHandle | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateAppHeight = () => {
+      const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--app-height', `${height}px`);
+
+      if (isMobile) {
+        const { min, max } = getMobileEditorSizing();
+        setEditorHeight((prev) => {
+          if (prev < min) return min;
+          if (prev > max) return max;
+          return prev;
+        });
+      }
+    };
+
+    updateAppHeight();
+    window.addEventListener('resize', updateAppHeight);
+    window.visualViewport?.addEventListener('resize', updateAppHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateAppHeight);
+      window.visualViewport?.removeEventListener('resize', updateAppHeight);
+    };
+  }, [isMobile]);
 
   // Validação com debounce
   const error = useValidation(code, 800);
@@ -102,8 +144,9 @@ function AppContent() {
 
   const handleDoubleClick = () => {
     if (isMobile) {
-      setEditorHeight(200);
-      localStorage.setItem('molic-editor-height', '200');
+      const { initial } = getMobileEditorSizing();
+      setEditorHeight(initial);
+      localStorage.setItem('molic-editor-height', initial.toString());
     } else {
       setEditorWidth(360); // Reset para padrão
       localStorage.setItem('molic-editor-width', '360');
@@ -126,12 +169,13 @@ function AppContent() {
       if (isMobile) {
         // Resize vertical para mobile
         const newHeight = workspaceRect.bottom - e.clientY;
-        const snapPoint = 200;
-        const constrained = Math.max(100, Math.min(400, newHeight));
+        const { min, max } = getMobileEditorSizing(workspaceRect.height);
+        const snapPoint = Math.round((min + max) / 2);
+        const constrained = Math.max(min, Math.min(max, newHeight));
 
         if (Math.abs(snapPoint - constrained) < 30) {
           setEditorHeight(snapPoint);
-          localStorage.setItem('molic-editor-height', '200');
+          localStorage.setItem('molic-editor-height', snapPoint.toString());
         } else {
           setEditorHeight(constrained);
           localStorage.setItem('molic-editor-height', constrained.toString());

@@ -5,7 +5,7 @@
 
 .header-menu-btn {
 	background: transparent;
-	border: none;
+	border: 1px solid var(--border-base);
 	color: var(--text-base);
 	cursor: pointer;
 	padding: 4px;
@@ -20,6 +20,7 @@
 
 .header-menu-btn:hover {
 	background-color: var(--bg-hover);
+	border-color: var(--border-hover);
 }
 
 .header-nav {

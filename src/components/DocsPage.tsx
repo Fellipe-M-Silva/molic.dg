@@ -117,8 +117,15 @@ export function DocsPage() {
             {/* Botão flutuante de sumário */}
             <button
               className="docs-mobile-summary-btn"
-              onClick={() => setShowMobileIndex(!showMobileIndex)}
-              title="Abrir sumário"
+              onClick={() => {
+                if (showMobileIndex) {
+                  closeMenuWithAnimation();
+                  return;
+                }
+
+                setShowMobileIndex(true);
+              }}
+              title={showMobileIndex ? 'Fechar sumário' : 'Abrir sumário'}
             >
               <List size={20} weight="bold" />
             </button>

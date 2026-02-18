@@ -1,7 +1,7 @@
 .docs-page {
 	display: flex;
 	flex-direction: column;
-	height: 100vh;
+	height: var(--app-height, 100vh);
 	background-color: var(--bg-base);
 	color: var(--text-base);
 }
@@ -118,12 +118,11 @@
 	}
 
 	.sidebar-nav {
-		flex-direction: row;
-		gap: 8px;
-		padding: 0;
+		flex-direction: column;
+		gap: 16px;
 		border-bottom: none;
 		margin-bottom: 0;
-		padding-bottom: 0;
+		padding: 16px;
 	}
 
 	.sidebar-link {
@@ -192,7 +191,7 @@
 		top: 0;
 		left: 0;
 		width: 280px;
-		height: 100vh;
+		height: var(--app-height, 100vh);
 		background: var(--bg-base);
 		border-right: 1px solid var(--border-base);
 		padding-top: 56px;
