@@ -42,12 +42,8 @@ export const useLayoutPersistence = () => {
 		try {
 			const saved = JSON.parse(savedString) as SavedLayout;
 			const savedNodesMap = new Map(saved.nodes.map((n) => [n.id, n]));
-			const savedEdgesMap = new Map(saved.edges.map((e) => [e.id, e]));
 
-			// console.log(
-			// 	`[MOLIC DEBUG] Layout carregado. Tentando mesclar ${saved.edges.length} arestas salvas em ${edges.length} atuais.`,
-			// );
-
+			// Apenas aplicar posições dos nós (handles já foram aplicados no transformer)
 			const mergedNodes = nodes.map((node) => {
 				const savedNode = savedNodesMap.get(node.id);
 				return savedNode
@@ -55,35 +51,7 @@ export const useLayoutPersistence = () => {
 					: node;
 			});
 
-			const mergedEdges = edges.map((edge) => {
-				const savedEdge = savedEdgesMap.get(edge.id);
-
-				if (savedEdge) {
-					const savedSource = savedEdge.sourceHandle;
-					const defaultSource = edge.sourceHandle;
-
-					const finalSource =
-						savedSource !== undefined ? savedSource : defaultSource;
-					const finalTarget =
-						savedEdge.targetHandle !== undefined
-							? savedEdge.targetHandle
-							: edge.targetHandle;
-
-					return {
-						...edge,
-						sourceHandle: finalSource,
-						targetHandle: finalTarget,
-					};
-				} else {
-					console.warn(
-						`[MOLIC DEBUG] Aresta atual ${edge.id} não encontrada no arquivo salvo.`,
-					);
-				}
-
-				return edge;
-			});
-
-			return { nodes: mergedNodes, edges: mergedEdges };
+			return { nodes: mergedNodes, edges };
 		} catch (e) {
 			console.error("Erro ao carregar layout salvo", e);
 			return { nodes, edges };

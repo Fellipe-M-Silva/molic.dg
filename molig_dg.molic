@@ -1,0 +1,206 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-02-16T23:00:20.464Z",
+  "code": "start ini {\r\n  u: \"Entrar\" let: \"code = localStorage.code\"-> EditarMolic\r\n}\r\n\r\nmain scene EditarMolic {\r\n  topic: \"Editar MoLIC\"\r\n  \r\n  and {\r\n    or {\r\n      subtopic: \"Mostrar código e diagrama\"\r\n        d: \"código, diagrama\" if: \"code\"\r\n        d: \"código de exemplo, diagrama\" if: \"!code\"\r\n      \r\n    }\r\n    subtopic: \"Editar código\"\r\n      u: \"escrever código\"\r\n      d: \"gerar diagrama\"\r\n    subtopic: \"Editar diagrama\"\r\n      d: \"diagrama\"\r\n    subtopic: \"Desfazer ação\"\r\n      u: \"Desfazer\" if: \"diagram.lastUndos <= 30 ações\"\r\n    subtopic: \"Refazer ação\"\r\n      u: \"Refazer\" if: \"diagram.lastRedos > 0\"\r\n    subtopic: \"Alterar zoom\"\r\n      du: \"list (aumentar, diminuir, ajustar, valor manual)\"\r\n  }\r\n\r\n\r\n  preferred d: \"Parsear código\" when: \"300ms sem digitar\" -> AttMolic \r\n}\r\n\r\nprocess AttMolic {\r\n  preferred d: \"Atualizar MoLIC\" if: \"código válido\" effect: \"localStorage.code = code\"-> EditarMolic \r\n  d: \"Erro\" if: \"erro de sintaxe \" ..> EditarMolic\r\n}\r\n\r\nglobal G {\r\n  u: \"Fechar\" -> Fim\r\n  u: \"Importar\" -> ImportarMolic\r\n  u: \"Exportar\" -> ExportarMolic\r\n  u: \"Mudar tema\" -> MudarTema\r\n  u: \"Ver docs\" -> ViewDocs\r\n}\r\n\r\nscene ImportarMolic {\r\n  topic: \"Importar Molic\"\r\n  \r\n  and {\r\n    subtopic: \"Informar arquivo\"\r\n    du: \"caminho, nome\" \r\n  }\r\n\r\n  u: \"Confirmar\" -> ImportMolic\r\n}\r\n\r\nprocess ImportMolic {\r\n  d: \"Arquivo ou caminho inválido\" if: \"\" ..> ImportarMolic\r\n  d: \"Arquivo carregado\" if: \"Arqivo válido\" -> EditarMolic\r\n}\r\n\r\nscene ExportarMolic {\r\n  topic: \"Exportar Molic\"\r\n\r\n  and {\r\n    subtopic: \"Escolher opção de exportação\"\r\n    du: \"list (exportar, imprimir)\"\r\n    or {\r\n      subtopic: \"Escolher formato\"\r\n      du: \"list (.molic, .svg, .png, .pdf)\" if: \"exportar\"\r\n      du: \"caminho, nome\"  if: \"imprimir\"\r\n    }\r\n  }\r\n  \r\n  u: \"Confirmar\" -> ExportMolic\r\n}\r\n\r\nprocess ExportMolic {\r\n  d: \"Arquivo ou caminho inválido\" if: \"\" ..> ExportarMolic\r\n  d: \"Arquivo gerado\" if: \"\" -> F\r\n}\r\n\r\nfork F {\r\n  d: \"Arquivo gerado\" -> SavedFile\r\n  d: \"Abrir janela de impressão\" if: \"imprimir\" -> Ext\r\n}\r\n\r\nscene MudarTema {\r\n  topic: \"Mudar tema\"\r\n  \r\n  and {\r\n    subtopic: \"Escolher tema\"\r\n    du: \"list (claro, escuro, sistema)\"\r\n  }\r\n\r\n  u: \"Escolher\" -> ChangeTheme\r\n}\r\n\r\nscene ViewDocs {\r\n  topic: \"Visualizar documentação\"\r\n  \r\n}\r\n\r\nbreak SavedFile\r\nbreak ChangeTheme\r\n\r\nexternal Ext \r\n\r\nend Fim",
+  "layout": {
+    "nodes": [
+      {
+        "id": "ini",
+        "position": {
+          "x": 368,
+          "y": -64
+        }
+      },
+      {
+        "id": "EditarMolic",
+        "position": {
+          "x": 256,
+          "y": 48
+        }
+      },
+      {
+        "id": "AttMolic",
+        "position": {
+          "x": 352,
+          "y": 624
+        }
+      },
+      {
+        "id": "G",
+        "position": {
+          "x": 672,
+          "y": -64
+        }
+      },
+      {
+        "id": "ImportarMolic",
+        "position": {
+          "x": 592,
+          "y": 48
+        }
+      },
+      {
+        "id": "ImportMolic",
+        "position": {
+          "x": 688,
+          "y": 416
+        }
+      },
+      {
+        "id": "ExportarMolic",
+        "position": {
+          "x": 928,
+          "y": 48
+        }
+      },
+      {
+        "id": "ExportMolic",
+        "position": {
+          "x": 1024,
+          "y": 416
+        }
+      },
+      {
+        "id": "F",
+        "position": {
+          "x": 976,
+          "y": 544
+        }
+      },
+      {
+        "id": "MudarTema",
+        "position": {
+          "x": 1264,
+          "y": 48
+        }
+      },
+      {
+        "id": "ViewDocs",
+        "position": {
+          "x": 1600,
+          "y": 48
+        }
+      },
+      {
+        "id": "SavedFile",
+        "position": {
+          "x": 784,
+          "y": 624
+        }
+      },
+      {
+        "id": "ChangeTheme",
+        "position": {
+          "x": 1328,
+          "y": 256
+        }
+      },
+      {
+        "id": "Ext",
+        "position": {
+          "x": 1296,
+          "y": 624
+        }
+      },
+      {
+        "id": "Fim",
+        "position": {
+          "x": 1936,
+          "y": 48
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e_ini_EditarMolic_Entrar_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_EditarMolic_AttMolic_Parsearcdigo_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_AttMolic_EditarMolic_AtualizarMoLIC_0",
+        "sourceHandle": "l-3",
+        "targetHandle": "l-5"
+      },
+      {
+        "id": "e_AttMolic_EditarMolic_Erro_0",
+        "sourceHandle": "r-3",
+        "targetHandle": "r-5"
+      },
+      {
+        "id": "e_G_Fim_Fechar_0",
+        "sourceHandle": "r-1",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_G_ImportarMolic_Importar_0",
+        "sourceHandle": "b-2",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_G_ExportarMolic_Exportar_0",
+        "sourceHandle": "b-4",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_G_MudarTema_Mudartema_0",
+        "sourceHandle": "r-5",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_G_ViewDocs_Verdocs_0",
+        "sourceHandle": "r-3",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_ImportarMolic_ImportMolic_Confirmar_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_ImportMolic_ImportarMolic_Arquivooucaminhoinvlido_0",
+        "sourceHandle": "r-3",
+        "targetHandle": "b-5"
+      },
+      {
+        "id": "e_ImportMolic_EditarMolic_Arquivocarregado_0",
+        "sourceHandle": "l-3",
+        "targetHandle": "r-3"
+      },
+      {
+        "id": "e_ExportarMolic_ExportMolic_Confirmar_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_ExportMolic_ExportarMolic_Arquivooucaminhoinvlido_0",
+        "sourceHandle": "l-3",
+        "targetHandle": "b-1"
+      },
+      {
+        "id": "e_ExportMolic_F_Arquivogerado_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-1"
+      },
+      {
+        "id": "e_F_SavedFile_Arquivogerado_0",
+        "sourceHandle": "b-2",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_F_Ext_Abrirjaneladeimpresso_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-3"
+      },
+      {
+        "id": "e_MudarTema_ChangeTheme_Escolher_0",
+        "sourceHandle": "b-3",
+        "targetHandle": "t-3"
+      }
+    ]
+  }
+}

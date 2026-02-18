@@ -1,415 +1,546 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as ohm from "ohm-js";
+import type { DiagramAST } from "../types/ast";
 
-import type {
-	DiagramAST,
-	SceneNode,
-	GlobalNode,
-	TerminalNode,
-	ForkNode,
-	UtteranceNode,
-	FlowControlNode,
-	TransitionNode,
-	EventNode,
-	ProcessNode,
-	ExternalNode,
-	ContactNode,
-	LetNode,
-	WhyNode,
-	DialogNode,
-} from "../types/ast";
-
-// --- Definição da Gramática ---
 export const grammarSource = `
 Molic {
   Diagram = Element*
 
-  Element
-    = AlertScene | Scene | Global | Terminal | Fork | SystemProcess | External | Contact
+	Element = Scene | Global | Start | Terminal | External | Contact | Process | Fork
 
-  // --- Estruturas de Bloco ---
-  Scene      = "main"? "scene" identifier "{" BlockContent* "}"
-  AlertScene = "scene" "alert" identifier "{" BlockContent* "}"
-  Global     = "global" identifier "{" BlockContent* "}"
-  
-  // Fork, External, Contact, Process
-  Fork = "fork" identifier "{" ForkContent* "}"
-  ForkContent 
-    = Utterance
-    | Redirect
-  Redirect = "->" identifier
+  Scene = "main"? "alert"? "scene" identifier "{" SceneContent* "}"
+  Global = "global" identifier "{" SceneContent* "}"
+  Start = "start" identifier "{" SceneContent* "}"
+  Terminal = ("end" | "break") identifier
   External = "external" identifier
-  Contact  = "contact" identifier "{" ContactBody* "}"
-  ContactBody = ContactRole | ContactFlow
-  ContactRole = "role:" string
-  ContactFlow = "role" Transition string?
-  SystemProcess = "process" identifier string Transition?
-  
-  // CORREÇÃO 1: Labels recolocados obrigatóriamente
-  Terminal 
-    = "start" identifier "->" identifier  -- start
-    | "end" identifier                    -- end
-    | "break" identifier                  -- completion
+	Contact = "contact" identifier "{" ContactContent* "}"
+	Process = "process" identifier "{" UtteranceWithTransition* "}"
+	Fork = "fork" identifier "{" UtteranceWithTransition* "}"
 
-  // --- Conteúdo Rico da Cena ---
-  BlockContent
-    = Topic
-    | Let
-    | Why
-    | Dialog
-    | FlowControl
-    | Utterance
-    | Event
+	SceneContent = Topic | FlowControl | UtteranceWithTransition | LetClause | EffectClause | WhyClause
 
   Topic = "topic:" string
+  SubTopic = "subtopic:" string
   
-  // Variáveis: let var = value
-  Let = "let" identifier "=" (string | identifier)
-
-  // Racional: why: "motivo"
-  Why = "why:" string
-
-  // Agrupamento de Diálogo
-  Dialog = "dialog" "{" BlockContent* "}"
-
-  // Fluxos: (seq|or|xor|and) [if "cond"] { ... }
-  FlowControl = ("seq" | "xor" | "or" | "and") Condition? "{" BlockContent* "}"
-
-  // Falas
-  Utterance = SystemUtterance | UserUtterance | MixedUtterance
+  FlowControl = FlowType Condition? "{" FlowContent* "}"
+  FlowType = "and" | "seq" | "or" | "xor"
   
-  SystemUtterance = "d:" string Condition? Transition?
-  UserUtterance   = "u:" string Condition? Transition?
-  MixedUtterance  = "du:" string Condition?
+	FlowContent = SubTopic | UtteranceWithTransition | FlowControl | LetClause | EffectClause | WhyClause
 
-  Event     = "when:" string Transition?
+	ContactContent = RoleClause | ContactUtteranceWithTransition
+
+	UtteranceWithTransition = Preferred Utterance InlineMeta+ Transition --preferredWithMeta
+	                       | Preferred Utterance Transition --preferredPlain
+	                       | Utterance InlineMeta+ Transition --withMeta
+	                       | Utterance Transition? --plain
+
+	ContactUtteranceWithTransition = Preferred ContactUtterance InlineMeta+ Transition --preferredWithMeta
+	                             | Preferred ContactUtterance Transition --preferredPlain
+	                             | ContactUtterance InlineMeta+ Transition --withMeta
+	                             | ContactUtterance Transition? --plain
+
+  Utterance = SystemUtterance | UserUtterance | MixedUtterance | AnonymousUtterance
+
+	ContactUtterance = ":" string Trigger?
+
+	SystemUtterance = "d:" string Trigger?
+	UserUtterance = "u:" string Trigger?
+	MixedUtterance = "du:" string Trigger?
+	AnonymousUtterance = "anon:" Trigger?
+
+  Trigger = Condition | When
+  Condition = "if:" string
+  When = "when:" string
   
-  // Sintaxe do IF: if "texto"
-  Condition = "if" string
+	LetClause = "let:" string
+	EffectClause = "effect:" string
+	WhyClause = "why:" string
+	RoleClause = "role:" string
 
-  Transition = Arrow identifier
-  Arrow = "->" | "..>"
+	InlineMeta = LetClause | EffectClause | WhyClause
 
-  // --- Primitivos ---
+	Preferred = "preferred"
+
+	Transition = Arrow identifier
+  Arrow = "=>" | "->" | "..>"
+
+  string = dqString | sqString
+	dqString = "\\\"" (~"\\\"" any)* "\\\""
+  sqString = "'" (~"'" any)* "'"
+  
+	comment
+		= lineComment
+		| percentComment
+		| blockComment
+
+	lineComment
+		= "//" (~"\\n" any)*
+
+	percentComment
+		= "%" (~"\\n" any)*
+
+	blockComment
+		= "/*" (~"*/" any)* "*/"
+
+	space += comment
+
   identifier = letter (alnum | "_")*
-  
-  // CORREÇÃO 2: Labels adicionados para casar com a semântica (string_doubleQuote)
-  string     
-    = "\\"" (~"\\"" any)* "\\""   -- doubleQuote
-    | "'" (~"'" any)* "'"       -- singleQuote
-
-  comment = "//" (~"\\n" any)* ("\\n" | end) | "/*" (~"*/" any)* "*/"
-  space  += comment
 }
 `;
 
 const grammar = ohm.grammar(grammarSource);
 const semantics = grammar.createSemantics();
 
-// --- Mapeamento Semântico (AST) ---
 semantics.addOperation("toAST", {
 	Diagram(elements: any) {
 		return {
 			elements: elements.children
 				.map((c: any) => c.toAST())
 				.filter((c: any) => c !== null),
-		} as DiagramAST;
+		};
 	},
 
-	// Estruturas Principais
 	Scene(
 		mainOpt: any,
+		alertOpt: any,
 		_scene: any,
 		id: any,
 		_open: any,
 		contents: any,
 		_close: any,
 	) {
-		const allItems = contents.children.map((c: any) => c.toAST());
+		void _close;
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
 
-		// SEPARAÇÃO:
-		// 1. Exits: Utterances (u:, d:) que têm transição (->) E estão na raiz da cena
-		// 2. Content: Todo o resto (Dialogs, Topics, Lets, Whys, ou Utterances sem link)
-
-		const exits = allItems.filter(
-			(item: any) =>
-				(item.type === "utterance" || item.type === "event") &&
-				item.transition,
-		);
-
-		const content = allItems.filter(
-			(item: any) =>
-				!(
-					(item.type === "utterance" || item.type === "event") &&
-					item.transition
-				),
+		const topicNode = contentNodes.find((c: any) => c.type === "topic");
+		const label = topicNode?.text;
+		const exits = contentNodes.filter(
+			(c: any) => c.type === "utterance" && c.transition,
 		);
 
 		return {
 			type: "scene",
-			variant: "normal",
+			id: id.sourceString,
+			label: label,
+			content: contentNodes,
+			exits: exits,
 			isMain: mainOpt.numChildren > 0,
-			id: id.sourceString,
-			content: content,
-			exits: exits,
-		} as SceneNode;
+			variant: alertOpt.numChildren > 0 ? "alert" : "normal",
+		};
 	},
 
-	AlertScene(
-		_scene: any,
-		_alert: any,
-		id: any,
-		_open: any,
-		contents: any,
-		_close: any,
-	) {
-		const allItems = contents.children.map((c: any) => c.toAST());
-
-		const exits = allItems.filter(
-			(item: any) =>
-				(item.type === "utterance" || item.type === "event") &&
-				item.transition,
-		);
-
-		const content = allItems.filter(
-			(item: any) =>
-				!(
-					(item.type === "utterance" || item.type === "event") &&
-					item.transition
-				),
-		);
-
-		return {
-			type: "scene",
-			variant: "alert",
-			id: id.sourceString,
-			content: content,
-			exits: exits,
-		} as SceneNode;
-	},
-
-	Global(_global: any, id: any, _open: any, contents: any, _close: any) {
+	Global(_global: any, id: any, _open: any, connections: any, _close: any) {
+		void _close;
+		const connNodes = connections.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
 		return {
 			type: "global",
 			id: id.sourceString,
-			content: contents.children.map((c: any) => c.toAST()),
-		} as GlobalNode;
+			content: connNodes,
+			exits: connNodes,
+		};
 	},
 
-	// Terminais (Agora vai funcionar porque os labels -- start existem na gramática)
-	Terminal_start(_tag: any, id: any, _arrow: any, target: any) {
+	Start(_start: any, id: any, _open: any, connections: any, _close: any) {
+		void _close;
+		const connNodes = connections.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
 		return {
 			type: "terminal",
 			kind: "start",
 			id: id.sourceString,
-			targetId: target.sourceString,
-		} as TerminalNode;
+			content: connNodes,
+		};
 	},
 
-	Terminal_end(_tag: any, id: any) {
+	Terminal(keyword: any, id: any) {
+		const kind = keyword.sourceString === "end" ? "end" : "break";
 		return {
 			type: "terminal",
-			kind: "end",
+			kind: kind,
 			id: id.sourceString,
-		} as TerminalNode;
+		};
 	},
 
-	Terminal_completion(_tag: any, id: any) {
-		return {
-			type: "terminal",
-			kind: "break",
-			id: id.sourceString,
-		} as TerminalNode;
-	},
-
-	External(_tag: any, id: any) {
+	External(_external: any, id: any) {
 		return {
 			type: "external",
 			id: id.sourceString,
-		} as ExternalNode;
+		};
 	},
 
-	Contact(_tag: any, id: any, _open: any, body: any, _close: any) {
-		const content = body.children.map((c: any) => c.toAST());
-
-		const roleNode = content.find((c: any) => c.type === "contact-role");
-		const name = roleNode ? roleNode.value : id.sourceString;
-
-		const flows = content
-			.filter((c: any) => c.type === "contact-flow")
-			.map((c: any) => ({ targetId: c.targetId, label: c.label }));
-
+	Contact(_contact: any, id: any, _open: any, contents: any, _close: any) {
+		void _close;
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		const roleNode = contentNodes.find((c: any) => c.type === "role");
+		const role = roleNode?.value ?? id.sourceString;
+		const utteranceNodes = contentNodes.filter(
+			(c: any) => c.type !== "role",
+		);
 		return {
 			type: "contact",
 			id: id.sourceString,
-			name: name,
-			flows: flows,
-		} as ContactNode;
-	},
-
-	ContactRole(_tag: any, text: any) {
-		return { type: "contact-role", value: text.toAST() };
-	},
-
-	ContactFlow(_tag: any, transition: any, optLabel: any) {
-		const trans = transition.toAST();
-		const label =
-			optLabel.numChildren > 0 ? optLabel.children[0].toAST() : undefined;
-
-		return {
-			type: "contact-flow",
-			targetId: trans.targetId,
-			label: label,
+			role: role,
+			content: utteranceNodes,
+			flows: [],
 		};
 	},
 
-	Fork(_tag: any, id: any, _open: any, body: any, _close: any) {
-		return {
-			type: "fork",
-			id: id.sourceString,
-			content: body.children.map((c: any) => c.toAST()),
-		} as ForkNode;
-	},
-
-	Redirect(_arrow: any, id: any) {
-		return {
-			type: "utterance",
-			text: "",
-			transition: { kind: "normal", targetId: id.sourceString },
-		};
-	},
-
-	SystemProcess(_tag: any, id: any, text: any, transition: any) {
+	Process(_process: any, id: any, _open: any, contents: any, _close: any) {
+		void _close;
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
 		return {
 			type: "process",
 			id: id.sourceString,
-			action: text.toAST(),
-			transition:
-				transition.numChildren > 0
-					? transition.children[0].toAST()
-					: undefined,
-		} as ProcessNode;
+			content: contentNodes,
+		};
 	},
 
-	// Componentes Internos
-	Topic(_label: any, text: any) {
+	Fork(_fork: any, id: any, _open: any, contents: any, _close: any) {
+		void _close;
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		return {
+			type: "fork",
+			id: id.sourceString,
+			content: contentNodes,
+		};
+	},
+
+	Topic(_colon: any, text: any) {
 		return { type: "topic", text: text.toAST() };
 	},
 
-	Let(_tag: any, id: any, _eq: any, val: any) {
-		return {
-			type: "let",
-			variable: id.sourceString,
-			value: val.sourceString.replace(/['"]/g, ""),
-		} as LetNode;
+	SubTopic(_colon: any, text: any) {
+		return { type: "subtopic", text: text.toAST() };
 	},
 
-	Why(_tag: any, text: any) {
-		return { type: "why", text: text.toAST() } as WhyNode;
-	},
+	FlowControl(
+		flowType: any,
+		condition: any,
+		_open: any,
+		contents: any,
+		_close: any,
+	) {
+		void _close;
+		const contentNodes = contents.children
+			.map((c: any) => c.toAST())
+			.filter((c: any) => c !== null);
+		const cond =
+			condition.numChildren > 0
+				? condition.children[0].toAST()
+				: undefined;
 
-	Dialog(_tag: any, _open: any, contents: any, _close: any) {
-		return {
-			type: "dialog",
-			children: contents.children.map((c: any) => c.toAST()),
-		} as DialogNode;
-	},
-
-	FlowControl(type: any, cond: any, _open: any, contents: any, _close: any) {
-		const condition =
-			cond.numChildren > 0 ? cond.children[0].toAST() : undefined;
 		return {
 			type: "flow",
-			variant: type.sourceString as any,
-			condition: condition,
-			children: contents.children.map((c: any) => c.toAST()),
-		} as FlowControlNode;
+			variant: flowType.sourceString,
+			condition: cond?.condition,
+			children: contentNodes,
+		};
 	},
 
-	SystemUtterance(_tag: any, text: any, cond: any, trans: any) {
+	SystemUtterance(_d: any, text: any, trigger: any) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+
 		return {
 			type: "utterance",
 			speaker: "system",
 			text: text.toAST(),
-			condition:
-				cond.numChildren > 0 ? cond.children[0].toAST() : undefined,
-			transition:
-				trans.numChildren > 0 ? trans.children[0].toAST() : undefined,
-		} as UtteranceNode;
+			condition: trig?.condition,
+			when: trig?.when,
+		};
 	},
-	UserUtterance(_tag: any, text: any, cond: any, trans: any) {
+
+	UserUtterance(_u: any, text: any, trigger: any) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+
 		return {
 			type: "utterance",
 			speaker: "user",
 			text: text.toAST(),
-			condition:
-				cond.numChildren > 0 ? cond.children[0].toAST() : undefined,
-			transition:
-				trans.numChildren > 0 ? trans.children[0].toAST() : undefined,
-		} as UtteranceNode;
+			condition: trig?.condition,
+			when: trig?.when,
+		};
 	},
-	MixedUtterance(_tag: any, text: any, cond: any) {
+
+	MixedUtterance(_du: any, text: any, trigger: any) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+
 		return {
 			type: "utterance",
 			speaker: "mixed",
 			text: text.toAST(),
-			condition:
-				cond.numChildren > 0 ? cond.children[0].toAST() : undefined,
-		} as UtteranceNode;
+			condition: trig?.condition,
+			when: trig?.when,
+		};
+	},
+
+	AnonymousUtterance(_anon: any, trigger: any) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+
+		return {
+			type: "utterance",
+			speaker: "anonymous",
+			text: "",
+			condition: trig?.condition,
+			when: trig?.when,
+		};
+	},
+
+	ContactUtterance(_colon: any, text: any, trigger: any) {
+		const trig =
+			trigger.numChildren > 0 ? trigger.children[0].toAST() : undefined;
+
+		return {
+			type: "utterance",
+			speaker: "system",
+			text: text.toAST(),
+			condition: trig?.condition,
+			when: trig?.when,
+		};
+	},
+
+	UtteranceWithTransition_withMeta(
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = transition.toAST();
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	UtteranceWithTransition_preferredWithMeta(
+		_preferred: any,
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	UtteranceWithTransition_plain(utterance: any, transition: any) {
+		const utt = utterance.toAST();
+		const trans =
+			transition.numChildren > 0
+				? transition.children[0].toAST()
+				: undefined;
+		return {
+			...utt,
+			transition: trans,
+		};
+	},
+
+	UtteranceWithTransition_preferredPlain(
+		_preferred: any,
+		utterance: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		return {
+			...utt,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_withMeta(
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = transition.toAST();
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_preferredWithMeta(
+		_preferred: any,
+		utterance: any,
+		metas: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		const metaNodes = metas.children.map((child: any) => child.toAST());
+		const inline: { let?: string; effect?: string; why?: string } = {};
+		metaNodes.forEach((meta: any) => {
+			if (meta.type === "let") inline.let = meta.value;
+			if (meta.type === "effect") inline.effect = meta.value;
+			if (meta.type === "why") inline.why = meta.value;
+		});
+		return {
+			...utt,
+			...inline,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_plain(utterance: any, transition: any) {
+		const utt = utterance.toAST();
+		const trans =
+			transition.numChildren > 0
+				? transition.children[0].toAST()
+				: undefined;
+		return {
+			...utt,
+			transition: trans,
+		};
+	},
+
+	ContactUtteranceWithTransition_preferredPlain(
+		_preferred: any,
+		utterance: any,
+		transition: any,
+	) {
+		const utt = utterance.toAST();
+		const trans = { ...transition.toAST(), isPreferred: true };
+		return {
+			...utt,
+			transition: trans,
+		};
 	},
 
 	Condition(_if: any, text: any) {
-		return text.toAST();
+		return { condition: text.toAST() };
 	},
 
-	Event(_tag: any, text: any, transition: any) {
+	When(_when: any, text: any) {
+		return { when: text.toAST() };
+	},
+
+	LetClause(_let: any, text: any) {
+		return { type: "let", value: text.toAST() };
+	},
+
+	EffectClause(_effect: any, text: any) {
+		return { type: "effect", value: text.toAST() };
+	},
+
+	WhyClause(_why: any, text: any) {
+		return { type: "why", value: text.toAST() };
+	},
+
+	RoleClause(_role: any, text: any) {
+		return { type: "role", value: text.toAST() };
+	},
+
+	Transition(arrow: any, id: any) {
+		let kind = "normal";
+		if (arrow.sourceString === "..>") kind = "repair";
+		else if (arrow.sourceString === "=>") kind = "simultaneous";
 		return {
-			type: "event",
-			trigger: text.toAST(),
-			transition:
-				transition.numChildren > 0
-					? transition.children[0].toAST()
-					: undefined,
-		} as EventNode;
+			kind: kind,
+			targetId: id.sourceString,
+			isPreferred: false,
+		};
 	},
 
-	// Utilitários e Primitivos
-	Transition(arrow: any, targetId: any) {
-		return {
-			targetId: targetId.sourceString,
-			kind: arrow.sourceString === "..>" ? "repair" : "normal",
-		} as TransitionNode;
-	},
-
-	// Essas funções agora funcionam porque adicionamos -- doubleQuote e -- singleQuote na gramática
-	string_doubleQuote(_open: any, chars: any, _close: any) {
+	dqString(_open: any, chars: any, _close: any) {
+		void _close;
 		return chars.sourceString;
 	},
 
-	string_singleQuote(_open: any, chars: any, _close: any) {
+	sqString(_open: any, chars: any, _close: any) {
+		void _close;
 		return chars.sourceString;
 	},
 
-	_iter(...children: any[]) {
-		return children.map((c) => c.toAST());
+	_nonterminal(...children: any[]) {
+		return children.length === 1
+			? children[0].toAST()
+			: children.map((c) => c.toAST());
 	},
 
-	_terminal(this: any) {
+	_terminal() {
 		return this.sourceString;
 	},
 });
 
+export interface ParsingError {
+	message: string;
+	line: number;
+	column: number;
+	position: number;
+}
+
 export const parseMolic = (input: string) => {
-	const match = grammar.match(input);
+	try {
+		const match = grammar.match(input);
+		if (match.failed()) {
+			// Quando há falha de parsing, colocamos na última linha onde o match chegou
+			const lines = input.split("\n");
+			// O índice de falha geralmente está no final
+			const line = Math.max(1, lines.length);
+			const lastLine = lines[lines.length - 1] || "";
+			const column = lastLine.length + 1;
 
-	if (match.failed()) {
-		return {
-			ast: null,
-			error: match.message,
+			const error: ParsingError = {
+				message: match.message,
+				line,
+				column,
+				position: input.length,
+			};
+			return { ast: null, error };
+		}
+		const ast = semantics(match).toAST() as DiagramAST;
+		return { ast, error: null };
+	} catch (e: any) {
+		// Erro genérico - posição desconhecida
+		const error: ParsingError = {
+			message: e.message,
+			line: 1,
+			column: 1,
+			position: 0,
 		};
+		return { ast: null, error };
 	}
-
-	const ast = semantics(match).toAST() as DiagramAST;
-	return { ast, error: null };
 };

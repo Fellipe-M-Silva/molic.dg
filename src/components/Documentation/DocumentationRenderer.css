@@ -1,0 +1,483 @@
+.documentation-renderer {
+	/* max-width: 1024px; */
+	margin: 0;
+	padding: 0;
+	color: var(--text-base);
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+		"Ubuntu", "Cantarell", sans-serif;
+	line-height: 1.5;
+	flex: 1;
+}
+
+/* Headings */
+.doc-h1 {
+	font-size: 2.5rem;
+	font-weight: 600;
+	margin: 0 0 24px 0;
+	color: var(--text-heading);
+	border-bottom: 2px solid var(--border-muted);
+	padding-bottom: 10px;
+}
+
+.doc-h2 {
+	font-size: 2rem;
+	font-weight: 600;
+	margin: 30px 0 16px 0;
+	color: var(--text-heading);
+	margin-top: 40px;
+}
+
+.doc-h3 {
+	font-size: 1.5rem;
+	font-weight: 500;
+	margin: 24px 0 16px 0;
+	color: var(--text-heading);
+	margin-top: 32px;
+}
+
+.doc-h4 {
+	font-size: 1.2rem;
+	font-weight: 500;
+	margin: 16px 0 8px 0;
+	color: var(--text-heading);
+}
+
+/* Paragraph */
+.doc-paragraph {
+	margin: 16px 0;
+	color: var(--text-base);
+	font-size: 1rem;
+}
+
+/* Inline Code */
+.doc-inline-code {
+	color: var(--text-base);
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-family: "Geist Mono", "Monaco", "Courier New", monospace;
+	font-size: 0.9em;
+}
+
+/* Strong e Emphasis */
+.documentation-renderer strong {
+	font-weight: 700;
+	color: var(--text-base);
+}
+
+.documentation-renderer em {
+	font-style: italic;
+	color: var(--text-base);
+}
+
+/* Code Blocks */
+.doc-codeblock-wrapper {
+	margin: 24px 0;
+	/* border-radius: 6px; */
+	overflow: hidden;
+	background-color: var(--bg-base);
+}
+
+.doc-codeblock-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px;
+	border: 1px solid var(--border-base);
+	border-bottom: 1px solid var(--border-base);
+	border-radius: 12px 12px 0 0;
+	gap: 12px;
+}
+
+.doc-codeblock-language {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--text-muted);
+	font-family: "Geist Mono", "Monaco", "Courier New", monospace;
+	letter-spacing: 0.5px;
+	text-transform: lowercase;
+	background-color: var(--bg-alt);
+	padding: 4px 8px;
+	border-radius: 4px;
+}
+
+.doc-codeblock-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.doc-code-btn {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px 8px 12px;
+	font-size: 0.85rem;
+	font-weight: 400;
+	border: 1px solid var(--border-base);
+	border-radius: 4px;
+	background-color: transparent;
+	color: var(--text-base);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+}
+
+.doc-code-btn:hover {
+	background-color: var(--bg-hover);
+	border-color: var(--border-hover);
+}
+
+.doc-copy-btn {
+	color: var(--text-muted);
+}
+
+.doc-copy-btn:hover {
+	color: var(--text-base);
+}
+
+.doc-try-btn {
+	color: var(--text-muted);
+	border-color: var(--border-base);
+	background-color: var(--bg-base);
+}
+
+.doc-try-btn:hover {
+	background-color: var(--bg-hover);
+	color: var(--text-base);
+	border-color: var(--border-hover);
+}
+
+.doc-codeblock {
+	background-color: var(--neutral-950);
+	border: none;
+	padding: 16px;
+	overflow-x: auto;
+	margin: 0;
+	font-family: "Geist Mono", "Monaco", "Courier New", monospace;
+	font-size: 0.9rem;
+	line-height: 1.4;
+	color: var(--text-base);
+	border-radius: 0 0 12px 12px;
+}
+
+.doc-codeblock code {
+	font-family: inherit;
+	background: none;
+}
+
+/* Syntax Highlighting for MoLIC code blocks - HIGH SPECIFICITY */
+.doc-codeblock code .syntax-keyword-clause {
+	color: #6a9955;
+	font-weight: 600;
+}
+
+.doc-codeblock code .syntax-keyword-struct {
+	color: #ff7a5c;
+	font-weight: 600;
+}
+
+.doc-codeblock code .syntax-keyword-flow {
+	color: #ce9178;
+	font-weight: 600;
+}
+
+.doc-codeblock code .syntax-keyword-speaker {
+	color: #dcdcaa;
+	font-weight: 600;
+}
+
+.doc-codeblock code .syntax-keyword {
+	color: #f44747;
+	font-weight: 600;
+}
+
+.doc-codeblock code .syntax-operator-arrow {
+	color: #4ec9b0;
+	font-weight: 600;
+}
+
+.doc-codeblock code .syntax-operator {
+	color: #d4d4d4;
+}
+
+.doc-codeblock code .syntax-string {
+	color: #6a9955;
+}
+
+.doc-codeblock code .syntax-comment {
+	color: #608b4e;
+	font-style: italic;
+}
+
+.doc-codeblock code .syntax-number {
+	color: #d4d4d4;
+}
+
+.doc-codeblock code .syntax-identifier {
+	color: #d4d4d4;
+}
+
+.doc-codeblock code .syntax-bracket {
+	color: #d4d4d4;
+}
+
+/* Diagram code blocks */
+.doc-diagram-code .syntax-keyword-clause {
+	color: #6a9955;
+	font-weight: 600;
+}
+
+.doc-diagram-code .syntax-keyword-struct {
+	color: #ff7a5c;
+	font-weight: 600;
+}
+
+.doc-diagram-code .syntax-keyword-flow {
+	color: #ce9178;
+	font-weight: 600;
+}
+
+.doc-diagram-code .syntax-keyword-speaker {
+	color: #dcdcaa;
+	font-weight: 600;
+}
+
+.doc-diagram-code .syntax-keyword {
+	color: #f44747;
+	font-weight: 600;
+}
+
+.doc-diagram-code .syntax-operator-arrow {
+	color: #4ec9b0;
+	font-weight: 600;
+}
+
+.doc-diagram-code .syntax-operator {
+	color: #d4d4d4;
+}
+
+.doc-diagram-code .syntax-string {
+	color: #6a9955;
+}
+
+.doc-diagram-code .syntax-comment {
+	color: #608b4e;
+	font-style: italic;
+}
+
+.doc-diagram-code .syntax-number {
+	color: #d4d4d4;
+}
+
+.doc-diagram-code .syntax-identifier {
+	color: #d4d4d4;
+}
+
+.doc-diagram-code .syntax-bracket {
+	color: #d4d4d4;
+}
+
+/* Light mode for code blocks */
+[data-theme="light"] .doc-codeblock code .syntax-keyword-clause {
+	color: #008000;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-keyword-struct {
+	color: #a4009b;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-keyword-flow {
+	color: #0000ff;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-keyword-speaker {
+	color: #bf7f3c;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-keyword {
+	color: #af00db;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-operator-arrow {
+	color: #008000;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-operator {
+	color: #000000;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-string {
+	color: #a31515;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-comment {
+	color: #008000;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-number {
+	color: #000000;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-identifier {
+	color: #000000;
+}
+
+[data-theme="light"] .doc-codeblock code .syntax-bracket {
+	color: #000000;
+}
+
+/* Light mode for diagram code blocks */
+[data-theme="light"] .doc-diagram-code .syntax-keyword-clause {
+	color: #008000;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-keyword-struct {
+	color: #a4009b;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-keyword-flow {
+	color: #0000ff;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-keyword-speaker {
+	color: #bf7f3c;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-keyword {
+	color: #af00db;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-operator-arrow {
+	color: #008000;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-operator {
+	color: #000000;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-string {
+	color: #a31515;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-comment {
+	color: #008000;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-number {
+	color: #000000;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-identifier {
+	color: #000000;
+}
+
+[data-theme="light"] .doc-diagram-code .syntax-bracket {
+	color: #000000;
+}
+.doc-diagram-preview {
+	background-color: var(--bg-secondary);
+	border: 2px dashed var(--primary);
+	border-radius: 6px;
+	padding: 20px;
+	margin: 20px 0;
+}
+
+/* Lists */
+.doc-list {
+	margin: 15px 0;
+	padding-left: 30px;
+	list-style: disc;
+}
+
+.doc-listitem {
+	margin: 8px 0;
+	color: var(--text-base);
+}
+
+/* Alerts */
+.doc-alert {
+	display: flex;
+	padding: 15px;
+	margin: 20px 0;
+	border-radius: 6px;
+	border-left: 4px solid;
+	background-color: var(--bg-secondary);
+}
+
+.alert-info {
+	border-left-color: #1890ff;
+	background-color: rgba(24, 144, 255, 0.1);
+}
+
+.alert-warning {
+	border-left-color: #ff9c00;
+	background-color: rgba(255, 156, 0, 0.1);
+}
+
+.alert-success {
+	border-left-color: #52c41a;
+	background-color: rgba(82, 196, 26, 0.1);
+}
+
+.alert-error {
+	border-left-color: #ff4d4f;
+	background-color: rgba(255, 77, 79, 0.1);
+}
+
+.alert-icon {
+	margin-right: 12px;
+	font-size: 1.3rem;
+	flex-shrink: 0;
+}
+
+.alert-content {
+	color: var(--text-base);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .doc-inline-code {
+	background-color: rgba(255, 255, 255, 0.1);
+	color: #64b5f6;
+}
+
+@media (max-width: 768px) {
+	.documentation-renderer {
+		padding: 20px;
+	}
+
+	.doc-h1 {
+		font-size: 2rem;
+	}
+
+	.doc-h2 {
+		font-size: 1.5rem;
+	}
+
+	.doc-h3 {
+		font-size: 1.2rem;
+	}
+
+	.doc-codeblock {
+		font-size: 0.8rem;
+		padding: 12px;
+	}
+
+	.doc-codeblock-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+		padding: 10px 12px;
+	}
+
+	.doc-codeblock-actions {
+		width: 100%;
+	}
+
+	.doc-code-btn {
+		flex: 1;
+		justify-content: center;
+		font-size: 0.8rem;
+		padding: 5px 10px;
+	}
+}

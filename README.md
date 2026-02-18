@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# molic.dg
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Editor visual para a linguagem **MOLIC**, permitindo modelar fluxos de conversação em sistemas de diálogo. Combine um editor de código com diagrama interativo que se atualiza em tempo real, com syntax highlighting, auto-completar, validação e exportação para SVG.
 
-Currently, two official plugins are available:
+- [Sobre o molic.dg](#sobre-o-molg)
+- [Como Contribuir](#como-contribuir)
+- [Documentação](#documentação)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Sobre o molic.dg
 
-## React Compiler
+**Principais recursos:**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Editor de Código**: Syntax highlighting, auto-completar e validação em tempo real
+- **Diagrama Interativo**: Visualização que se atualiza conforme você escreve
+- **Snippets**: Atalhos como `scen`, `star`, `proc` para gerar estruturas comuns
+- **Exportar**: Baixar diagrama como SVG
+- **Tema**: Modo claro e escuro
 
-## Expanding the ESLint configuration
+## Como Contribuir
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Instalação
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone [seu-repositorio]
+cd molic.dg
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+O app estará em `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Estrutura
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/       # Componentes React
+├── context/          # React Context
+├── core/             # Parser, grammar, lógica MOLIC
+├── docs/             # Documentação do app (markdown)
+├── hooks/            # Custom hooks
+├── providers/        # Providers do app
+├── styles/           # Estilos globais
+├── types/            # TypeScript types
+└── utils/            # Funções globais
+```
+
+## Documentação
+
+### Adicionar página
+
+1. Crie arquivo em `src/docs/seu-arquivo.md`
+2. Registre em `src/docs/content.ts`:
+
+```typescript
+{
+  id: 'seu-arquivo',
+  title: 'Título',
+  file: 'seu-arquivo.md',
+  order: 10,
+}
+```
+
+3. Pronto! O app se atualiza automaticamente
+
+---
+
+**Stack**: React + TypeScript + Vite + Monaco Editor + React Flow

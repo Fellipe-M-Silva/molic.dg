@@ -75,15 +75,24 @@ Molic {
     = letter (alnum | "_")*
 
   string
-    = "\\"" (~"\\"" any)* "\\""  -- doubleQuote
+    = "\\\"" (~"\\\"" any)* "\\\""  -- doubleQuote
     | "'" (~"'" any)* "'"     -- singleQuote
 
   // CORREÇÃO 1: Renomeado para minúsculo (regra lexical)
   comment
-    = "//" (~"\\n" any)* ("\\n" | end)  -- singleLine
-    | "/*" (~"*/" any)* "*/"          -- multiLine
+    = lineComment
+    | percentComment
+    | blockComment
 
-  // CORREÇÃO 2: Agora funciona porque lexical chama lexical
+  lineComment
+    = "//" (~"\\\\n" any)*
+
+  percentComment
+    = "%" (~"\\\\n" any)*
+
+  blockComment
+    = "/*" (~"*/" any)* "*/"
+
   space += comment
 }
 `;
