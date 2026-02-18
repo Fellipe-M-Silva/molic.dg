@@ -184,6 +184,7 @@ export const transformer = (ast: DiagramAST) => {
 					rawContent: element.content,
 					isGlobal: element.type === "global",
 					variant: element.variant,
+					isMain: element.isMain,
 				},
 				style: { width: LAYOUT.NODE_WIDTH },
 			});

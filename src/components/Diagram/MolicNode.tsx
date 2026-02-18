@@ -79,6 +79,7 @@ const renderContent = (items: ContentNode[]) => {
 export const MolicNode = memo(({ data, selected }: NodeProps) => {
   const isGlobal = data.isGlobal;
   const isAlert = data.variant === 'alert';
+  const isMain = data.isMain;
   const visibleContent = useMemo(() => {
     if (!data.rawContent) return [];
     return data.rawContent.filter((item: ContentNode) => item.type !== 'topic');
@@ -91,6 +92,7 @@ export const MolicNode = memo(({ data, selected }: NodeProps) => {
     selected ? 'selected' : '',
     isGlobal ? 'global' : '',
     isAlert ? 'alert' : '',
+    isMain ? 'main' : '',
     !hasContent ? 'collapsed' : ''
   ].filter(Boolean).join(' ');
 
