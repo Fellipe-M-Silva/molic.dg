@@ -184,3 +184,13 @@
 .zoom-input[type="number"] {
 	-moz-appearance: textfield;
 }
+
+/* Mobile */
+@media (max-width: 768px) {
+	.diagram-toolbar {
+		bottom: auto;
+		top: 16px;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+}

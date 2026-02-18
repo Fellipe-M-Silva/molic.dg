@@ -2,27 +2,42 @@ import { useState, useRef, useEffect } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './styles/main.css';
-import { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
-import { ExportButton } from './components/ExportButton/ExportButton';
+import { Header } from './components/Header/Header';
+import { DocsPage } from './components/DocsPage';
 import { CodeEditor } from './components/CodeEditor/CodeEditor';
 import { ProblemsPanel } from './components/ProblemsPanel/ProblemsPanel';
 import { Diagram, type DiagramHandle } from './components/Diagram/Diagram';
 import { useValidation } from './hooks/useValidation';
+import { useIsMobile } from './hooks/useIsMobile';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './context/ToastContext';
-import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react';
+import { CaretLeftIcon, CaretRightIcon, CaretDownIcon, CaretUpIcon } from '@phosphor-icons/react';
 
 export const INITIAL_CODE = ``;
 
 function AppContent() {
+  const isMobile = useIsMobile();
+  const [currentPage, setCurrentPage] = useState<'editor' | 'docs'>('editor');
   const [code, setCode] = useState(() => {
     return localStorage.getItem('molic-code') || INITIAL_CODE;
   });
 
-  const [editorVisible, setEditorVisible] = useState(true);
+  const [editorVisible, setEditorVisible] = useState(() => {
+    // Em mobile, editor começa expandido
+    return true;
+  });
   const [editorWidth, setEditorWidth] = useState(() => {
     const saved = localStorage.getItem('molic-editor-width');
     return saved ? Number(saved) : 360; // Padrão: 360px
+  });
+  const [editorHeight, setEditorHeight] = useState(() => {
+    const saved = localStorage.getItem('molic-editor-height');
+    // Em mobile, calcula 50% da altura disponível
+    // Em desktop, usa o valor salvo ou padrão de 200px
+    if (isMobile) {
+      return 400; // ~50% de uma tela mobile típica
+    }
+    return saved ? Number(saved) : 200;
   });
   const [isResizing, setIsResizing] = useState(false);
   const editorPaneRef = useRef<HTMLDivElement>(null);
@@ -30,6 +45,36 @@ function AppContent() {
 
   // Validação com debounce
   const error = useValidation(code, 800);
+
+  // Listener para navegação
+  useEffect(() => {
+    const handleNavigation = () => {
+      const path = window.location.pathname;
+      setCurrentPage(path === '/docs' ? 'docs' : 'editor');
+    };
+
+    // Verifica a rota inicial quando o app carrega
+    handleNavigation();
+
+    window.addEventListener('navigationchange', handleNavigation);
+    window.addEventListener('popstate', handleNavigation);
+    
+    // Listener para navegação a partir do botão "Experimentar"
+    const handleNavigateToEditor = () => {
+      // Ler o código atualizado do localStorage
+      const updatedCode = localStorage.getItem('molic-code') || INITIAL_CODE;
+      setCode(updatedCode);
+      window.history.pushState({}, '', '/');
+      setCurrentPage('editor');
+    };
+    window.addEventListener('navigateToEditor', handleNavigateToEditor);
+    
+    return () => {
+      window.removeEventListener('navigationchange', handleNavigation);
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('navigateToEditor', handleNavigateToEditor);
+    };
+  }, []);
 
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
@@ -41,8 +86,13 @@ function AppContent() {
   };
 
   const handleDoubleClick = () => {
-    setEditorWidth(360); // Reset para padrão
-    localStorage.setItem('molic-editor-width', '360');
+    if (isMobile) {
+      setEditorHeight(200);
+      localStorage.setItem('molic-editor-height', '200');
+    } else {
+      setEditorWidth(360); // Reset para padrão
+      localStorage.setItem('molic-editor-width', '360');
+    }
   };
 
   useEffect(() => {
@@ -57,19 +107,33 @@ function AppContent() {
       if (!workspace) return;
 
       const workspaceRect = workspace.getBoundingClientRect();
-      const newWidth = e.clientX - workspaceRect.left;
 
-      // Snap point: 360px
-      const snapPoint = 360;
-      const constrained = Math.max(200, Math.min(800, newWidth)); // Mínimo 200px, máximo 800px
+      if (isMobile) {
+        // Resize vertical para mobile
+        const newHeight = workspaceRect.bottom - e.clientY;
+        const snapPoint = 200;
+        const constrained = Math.max(100, Math.min(400, newHeight));
 
-      // Se estiver perto do snap point (30px), snap para ele
-      if (Math.abs(snapPoint - constrained) < 30) {
-        setEditorWidth(snapPoint);
-        localStorage.setItem('molic-editor-width', '360');
+        if (Math.abs(snapPoint - constrained) < 30) {
+          setEditorHeight(snapPoint);
+          localStorage.setItem('molic-editor-height', '200');
+        } else {
+          setEditorHeight(constrained);
+          localStorage.setItem('molic-editor-height', constrained.toString());
+        }
       } else {
-        setEditorWidth(constrained);
-        localStorage.setItem('molic-editor-width', constrained.toString());
+        // Resize horizontal para desktop
+        const newWidth = e.clientX - workspaceRect.left;
+        const snapPoint = 360;
+        const constrained = Math.max(200, Math.min(800, newWidth));
+
+        if (Math.abs(snapPoint - constrained) < 30) {
+          setEditorWidth(snapPoint);
+          localStorage.setItem('molic-editor-width', '360');
+        } else {
+          setEditorWidth(constrained);
+          localStorage.setItem('molic-editor-width', constrained.toString());
+        }
       }
     };
 
@@ -81,7 +145,7 @@ function AppContent() {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isResizing]);
+  }, [isResizing, isMobile]);
 
   // Keyboard shortcut para toggle editor (E)
   useEffect(() => {
@@ -102,104 +166,87 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <h1 style={{ marginRight: '10px' }}>MoLIC.dg</h1>
-        <div style={{ flex: 1 }} />
-        {error ? (
-          <span style={{
-            fontSize: '0.8rem',
-            color: '#ff4d4f',
-            background: 'rgba(255, 0, 0, 0.1)',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            marginRight: '10px'
-          }}>
-            Erro de Sintaxe
-          </span>
-        ) : (
-          <span style={{
-            fontSize: '0.8rem',
-            color: 'var(--text-base)',
-            background: 'rgba(0, 255, 0, 0.1)',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            marginRight: '10px'
-          }}>
-            Compilado
-          </span>
-        )}
+      {currentPage === 'docs' ? (
+        <DocsPage />
+      ) : (
+        <>
+          <Header
+            onEditorClick={() => {
+              window.history.pushState({}, '', '/');
+              setCurrentPage('editor');
+            }}
+            onDocsClick={() => {
+              window.history.pushState({}, '', '/docs');
+              setCurrentPage('docs');
+            }}
+            diagramRef={diagramRef}
+            code={code}
+            onLoadMolic={(project) => {
+              setCode(project.code);
+              localStorage.setItem('molic-code', project.code);
+              localStorage.setItem('molic-layout-stable-v4', JSON.stringify({
+                nodes: project.layout.nodes,
+                edges: project.layout.edges
+              }));
+            }}
+            showExport={true}
+            errorStatus={error ? 'error' : 'success'}
+            isDocsPage={false}
+          />
 
-        <ThemeToggle />
-        <ExportButton 
-          diagramRef={diagramRef} 
-          code={code}
-          onLoadMolic={(project) => {
-            // Atualizar o código
-            setCode(project.code);
-            localStorage.setItem('molic-code', project.code);
-            
-            // Salvar o layout no localStorage
-            localStorage.setItem('molic-layout-stable-v4', JSON.stringify({
-              nodes: project.layout.nodes,
-              edges: project.layout.edges
-            }));
-          }}
-        />
-      </header>
+          <main className={`workspace ${isMobile ? 'mobile' : ''}`}>
+            <aside 
+              ref={editorPaneRef}
+              className={`editor-pane${editorVisible ? '' : ' hidden'}`}
+              style={isMobile ? {
+                height: editorVisible ? `${editorHeight}px` : '0',
+              } : {
+                width: editorVisible ? `${editorWidth}px` : '0',
+              }}
+            >
+                <CodeEditor 
+                  code={code} 
+                  onChange={handleCodeChange}
+                  errors={error ? [error] : []}
+                />
 
-      <main className="workspace">
-        <aside 
-          ref={editorPaneRef}
-          className={`editor-pane${editorVisible ? '' : ' hidden'}`}
-          style={{
-            width: editorVisible ? `${editorWidth}px` : '0',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'relative',
-            cursor: isResizing ? 'col-resize' : 'default',
-          }}
-        >
-            <CodeEditor 
-              code={code} 
-              onChange={handleCodeChange}
-              errors={error ? [error] : []}
-            />
+                {error && <ProblemsPanel errors={[error]} />}
 
-            {error && <ProblemsPanel errors={[error]} />}
+                {/* Handle de Resize */}
+                <div
+                  className={`resize-handle ${isMobile ? 'horizontal' : 'vertical'}`}
+                  onMouseDown={handleMouseDown}
+                  onDoubleClick={handleDoubleClick}
+                  title={isMobile ? "Arraste para redimensionar | Double-click para reset" : "Arraste para redimensionar | Double-click para reset"}
+                />
 
-            {/* Handle de Resize */}
-            <div
-              className="resize-handle"
-              onMouseDown={handleMouseDown}
-              onDoubleClick={handleDoubleClick}
-              title="Arraste para redimensionar | Double-click para reset"
-            />
+              {/* Botão de Ocultar */}
+              <button
+                className={`editor-toggle-btn hide ${isMobile ? 'mobile' : ''}`}
+                onClick={() => setEditorVisible(false)}
+                title={isMobile ? "Ocultar editor" : "Ocultar editor (E)"}
+              >
+                {isMobile ? <CaretDownIcon size={16} weight="bold" /> : <CaretLeftIcon size={16} weight="bold" />}
+              </button>
+            </aside>
 
-          {/* Botão de Ocultar */}
-          <button
-            className="editor-toggle-btn hide"
-            onClick={() => setEditorVisible(false)}
-            title="Ocultar editor (E)"
-          >
-            <CaretLeftIcon size={16} weight="bold" />
-          </button>
-        </aside>
+            {/* Botão de Mostrar (flutuante) */}
+            {!editorVisible && (
+              <button
+                className={`editor-toggle-btn show ${isMobile ? 'mobile' : ''}`}
+                onClick={() => setEditorVisible(true)}
+                title={isMobile ? "Mostrar editor" : "Mostrar editor (E)"}
+              >
+                {isMobile ? <CaretUpIcon size={16} weight="bold" /> : <CaretRightIcon size={16} weight="bold" />}
+              </button>
+            )}
 
-        {/* Botão de Mostrar (flutuante) */}
-        {!editorVisible && (
-          <button
-            className="editor-toggle-btn show"
-            onClick={() => setEditorVisible(true)}
-            title="Mostrar editor (E)"
-          >
-            <CaretRightIcon size={16} weight="bold" />
-          </button>
-        )}
-
-        <div className="diagram-pane">
-          <Diagram code={code} ref={diagramRef} />
-        </div>
-      </main>
+            <div className="diagram-pane">
+              <Diagram code={code} ref={diagramRef} />
+            </div>
+          </main>
+        </>
+      )}
     </div>
   );
 }

@@ -21,12 +21,13 @@
 	--bg-base: var(--neutral-0);
 	--bg-alt: var(--neutral-100);
 	--bg-muted: var(--neutral-300);
-	--bg-hover: var(--neutral-200);
+	--bg-hover: var(--neutral-100);
 	--bg-canvas: var(--neutral-100);
 
 	/* TEXTOS */
-	--text-base: var(--neutral-900);
-	--text-muted: var(--neutral-500);
+	--text-base: var(--neutral-700);
+	--text-heading: var(--neutral-900);
+	--text-muted: var(--neutral-600);
 	--text-primary: var(--neutral-50);
 
 	/* BORDAS */
@@ -56,7 +57,8 @@
 	--bg-canvas: var(--neutral-950);
 
 	/* TEXTOS */
-	--text-base: var(--neutral-100);
+	--text-base: var(--neutral-50);
+	--text-heading: var(--neutral-0);
 	--text-muted: var(--neutral-400);
 	--text-primary: var(--neutral-900);
 
@@ -116,6 +118,8 @@ html,
 	align-items: center;
 	padding: 0 1rem;
 	border-bottom: 1px solid var(--border-alt);
+	z-index: 1000;
+	position: relative;
 }
 
 header h1 {
@@ -130,6 +134,10 @@ header h1 {
 	position: relative;
 }
 
+.workspace.mobile {
+	flex-direction: column;
+}
+
 .editor-pane {
 	border-right: 1px solid var(--border-muted);
 	background: var(--bg-base);
@@ -137,6 +145,17 @@ header h1 {
 	flex-direction: column;
 	transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	user-select: none;
+	position: relative;
+	cursor: col-resize;
+}
+
+.workspace.mobile .editor-pane {
+	order: 2;
+	border-right: none;
+	border-top: 1px solid var(--border-muted);
+	transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	width: 100% !important;
+	cursor: row-resize;
 }
 
 .editor-pane.hidden {
@@ -144,6 +163,12 @@ header h1 {
 	overflow: hidden;
 	border-right: none;
 	pointer-events: none;
+}
+
+.workspace.mobile .editor-pane.hidden {
+	height: 0 !important;
+	width: 100% !important;
+	border-top: none;
 }
 
 /* Handle de Resize */
@@ -155,6 +180,19 @@ header h1 {
 	height: 100%;
 	background: transparent;
 	cursor: col-resize;
+	transition: background-color 0.2s ease;
+	z-index: 100;
+}
+
+.resize-handle.horizontal {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: 4px;
+	cursor: row-resize;
+	background: transparent;
 	transition: background-color 0.2s ease;
 	z-index: 100;
 }
@@ -183,6 +221,15 @@ header h1 {
 	z-index: 50;
 }
 
+.editor-toggle-btn.hide.mobile {
+	right: 16px;
+	top: -32px;
+	bottom: auto;
+	width: 48px;
+	height: 32px;
+	border-radius: 6px 6px 0 0;
+}
+
 .editor-toggle-btn.hide:hover {
 	background: var(--bg-alt);
 	border-color: var(--border-muted);
@@ -209,6 +256,13 @@ header h1 {
 	visibility: visible;
 }
 
+.editor-toggle-btn.show.mobile {
+	left: auto;
+	right: 16px;
+	bottom: 16px;
+	top: auto;
+}
+
 .editor-toggle-btn.show:hover {
 	background: var(--bg-alt);
 	border-color: var(--border-muted);
@@ -218,4 +272,39 @@ header h1 {
 	flex: 1;
 	background: var(--bg-canvas);
 	position: relative;
+	order: 1;
+	width: 100%;
+	height: 100%;
+}
+
+.workspace.mobile .diagram-pane {
+	order: 1;
+}
+
+/* Media Queries para Mobile */
+@media (max-width: 768px) {
+	.workspace {
+		flex-direction: column;
+	}
+
+	.editor-pane {
+		border-right: none;
+		border-top: 1px solid var(--border-muted);
+	}
+
+	.editor-toggle-btn.hide {
+		right: 16px;
+		top: auto;
+		bottom: -32px;
+		width: 48px;
+		height: 32px;
+		border-radius: 6px 6px 0 0;
+	}
+
+	.editor-toggle-btn.show {
+		right: 16px;
+		bottom: 16px;
+		left: auto;
+		top: auto;
+	}
 }
