@@ -18,6 +18,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
   const monacoRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
   const isInsertingSnippetRef = useRef(false);
+  const autoSnippetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const editorOptions = {
     minimap: { enabled: false },
@@ -37,6 +38,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
     snippetSuggestions: 'top',
     tabCompletion: 'on',
     acceptSuggestionOnEnter: 'on',
+    scrollbar: { useShadows: true, vertical: 'auto', horizontal: 'auto' },
   } as const;
 
   const handleEditorChange = (value: string | undefined) => {
@@ -486,7 +488,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
 
     editor.onDidChangeModelContent((event) => {
       if (event.isFlush || event.isRedoing || event.isUndoing) return;
-      applyAutoSnippets();
+      
+      // Debounce auto-snippets para evitar múltiplas inserções quando digitando rápido
+      if (autoSnippetTimeoutRef.current) {
+        clearTimeout(autoSnippetTimeoutRef.current);
+      }
+      
+      autoSnippetTimeoutRef.current = setTimeout(() => {
+        applyAutoSnippets();
+        autoSnippetTimeoutRef.current = null;
+      }, 100); // Aguarda 100ms após o último input antes de aplicar snippets
     });
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
@@ -503,6 +514,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange, errors =
       monacoRef.current.editor.setTheme(newTheme);
     }
   }, [resolvedTheme]);
+
+  // Limpa o timeout quando o componente é desmontado
+  useEffect(() => {
+    return () => {
+      if (autoSnippetTimeoutRef.current) {
+        clearTimeout(autoSnippetTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Marca os erros no editor usando Monaco markers
   useEffect(() => {

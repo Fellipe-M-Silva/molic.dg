@@ -13,7 +13,22 @@ import { ThemeProvider } from './providers/ThemeProvider';
 import { ToastProvider } from './context/ToastContext';
 import { CaretLeftIcon, CaretRightIcon, CaretDownIcon, CaretUpIcon } from '@phosphor-icons/react';
 
-export const INITIAL_CODE = ``;
+export const INITIAL_CODE = ` // Boas-vindas ao MoLIC.dg :)
+ // Crie diagramas MoLIC digitando o código aqui em linguagem .molic.
+ // Exemplo (descomente o código para ver o diagrama):
+ //start Com {
+ //  u: "Entrar" -> HomePage
+ //}
+ //
+ //scene HomePage {
+ //  topic: "Página Inicial"
+ //  u: "Clicar em 'Comprar'" -> Fim
+ //}
+ //
+ //end Fim
+ //
+ // Dê uma olhada na documentação para aprender mais sobre a linguagem e como usá-la.
+`;
 
 function AppContent() {
   const isMobile = useIsMobile();
